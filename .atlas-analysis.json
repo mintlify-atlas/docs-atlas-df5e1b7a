@@ -1,0 +1,78 @@
+{
+  "projectType": "saas",
+  "projectName": "Hotel Reservation System",
+  "projectDescription": "A full-stack hotel management system for managing clients, rooms, and reservations with a REST API backend and web interface.",
+  "theme": "almond",
+  "primaryColor": "#2563eb",
+  "lightColor": "#60a5fa",
+  "darkColor": "#1e40af",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/clients",
+              "features/rooms",
+              "features/reservations"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/database-setup",
+              "deployment/configuration",
+              "deployment/deployment"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/overview",
+              "api/clients",
+              "api/rooms",
+              "api/reservations"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Complete CRUD operations for client management",
+    "Room inventory management with pricing",
+    "Reservation tracking and management",
+    "RESTful API with Express.js",
+    "MySQL database integration",
+    "Bootstrap-based web interface"
+  ],
+  "publicApiSurface": [
+    "GET /clientes",
+    "POST /clientes",
+    "PUT /clientes/:id",
+    "DELETE /clientes/:id",
+    "GET /habitaciones",
+    "POST /habitaciones",
+    "PUT /habitaciones/:id",
+    "DELETE /habitaciones/:id",
+    "GET /reservaciones",
+    "POST /reservaciones",
+    "PUT /reservaciones/:id",
+    "DELETE /reservaciones/:id"
+  ]
+}
