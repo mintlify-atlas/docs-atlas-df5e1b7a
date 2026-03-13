@@ -1,0 +1,450 @@
+---
+title: 'Rooms API'
+description: 'Manage hotel rooms, types, and pricing information'
+icon: 'bed'
+---
+
+## Overview
+
+The Rooms API allows you to manage hotel room inventory including room names, types, and pricing. All room operations are performed on the `habitaciones` database table.
+
+**Base endpoint**: `/habitaciones`
+
+---
+
+## Get All Rooms
+
+<ParamField path="GET" query="/habitaciones" required>
+  Retrieve a list of all rooms in the hotel.
+</ParamField>
+
+### Request
+
+```bash
+GET http://localhost:4000/habitaciones
+```
+
+### Response
+
+Returns an array of room objects.
+
+<ResponseField name="id" type="integer">
+  Unique identifier for the room
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Room name or number
+</ResponseField>
+
+<ResponseField name="tipo" type="string">
+  Room type (e.g., Single, Double, Suite)
+</ResponseField>
+
+<ResponseField name="precio" type="decimal">
+  Room price per night
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl http://localhost:4000/habitaciones
+```
+
+```javascript JavaScript
+fetch('http://localhost:4000/habitaciones')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+response = requests.get('http://localhost:4000/habitaciones')
+rooms = response.json()
+print(rooms)
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+[
+  {
+    "id": 1,
+    "nombre": "101",
+    "tipo": "Individual",
+    "precio": 850.00
+  },
+  {
+    "id": 2,
+    "nombre": "102",
+    "tipo": "Doble",
+    "precio": 1200.00
+  },
+  {
+    "id": 3,
+    "nombre": "201",
+    "tipo": "Suite",
+    "precio": 2500.00
+  },
+  {
+    "id": 4,
+    "nombre": "202",
+    "tipo": "Suite Presidencial",
+    "precio": 4000.00
+  }
+]
+```
+
+---
+
+## Create Room
+
+<ParamField path="POST" query="/habitaciones" required>
+  Add a new room to the hotel inventory.
+</ParamField>
+
+### Request Body
+
+<ParamField body="nombre" type="string" required>
+  Room name or number (e.g., "101", "Penthouse A")
+</ParamField>
+
+<ParamField body="tipo" type="string" required>
+  Room type classification (e.g., "Individual", "Doble", "Suite")
+</ParamField>
+
+<ParamField body="precio" type="decimal" required>
+  Room price per night
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: "hanitacion agregado"
+</ResponseField>
+
+<Note>
+Note: The response message contains a typo in the source code ("hanitacion" instead of "habitación").
+</Note>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:4000/habitaciones \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "301",
+    "tipo": "Deluxe",
+    "precio": 1800.00
+  }'
+```
+
+```javascript JavaScript
+const newRoom = {
+  nombre: '301',
+  tipo: 'Deluxe',
+  precio: 1800.00
+};
+
+fetch('http://localhost:4000/habitaciones', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(newRoom)
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+new_room = {
+    'nombre': '301',
+    'tipo': 'Deluxe',
+    'precio': 1800.00
+}
+
+response = requests.post(
+    'http://localhost:4000/habitaciones',
+    json=new_room
+)
+print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+{
+  "message": "hanitacion agregado"
+}
+```
+
+---
+
+## Update Room
+
+<ParamField path="PUT" query="/habitaciones/:id" required>
+  Update an existing room's information.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the room to update
+</ParamField>
+
+### Request Body
+
+<ParamField body="nombre" type="string" required>
+  Updated room name or number
+</ParamField>
+
+<ParamField body="tipo" type="string" required>
+  Updated room type
+</ParamField>
+
+<ParamField body="precio" type="decimal" required>
+  Updated room price
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: "habitacion actualizado"
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X PUT http://localhost:4000/habitaciones/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "101",
+    "tipo": "Individual Premium",
+    "precio": 950.00
+  }'
+```
+
+```javascript JavaScript
+const updatedRoom = {
+  nombre: '101',
+  tipo: 'Individual Premium',
+  precio: 950.00
+};
+
+fetch('http://localhost:4000/habitaciones/1', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(updatedRoom)
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+updated_room = {
+    'nombre': '101',
+    'tipo': 'Individual Premium',
+    'precio': 950.00
+}
+
+response = requests.put(
+    'http://localhost:4000/habitaciones/1',
+    json=updated_room
+)
+print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+{
+  "message": "habitacion actualizado"
+}
+```
+
+---
+
+## Delete Room
+
+<ParamField path="DELETE" query="/habitaciones/:id" required>
+  Remove a room from the hotel inventory.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the room to delete
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: "habitacion eliminado"
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE http://localhost:4000/habitaciones/1
+```
+
+```javascript JavaScript
+fetch('http://localhost:4000/habitaciones/1', {
+  method: 'DELETE'
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+response = requests.delete('http://localhost:4000/habitaciones/1')
+print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+{
+  "message": "habitacion eliminado"
+}
+```
+
+---
+
+## Error Handling
+
+<Warning>
+All endpoints will throw database errors if operations fail. The API currently does not implement structured error handling.
+</Warning>
+
+Common error scenarios:
+- Database connection failures
+- Invalid SQL queries
+- Constraint violations (e.g., deleting a room that has active reservations)
+- Invalid data types (e.g., non-numeric price values)
+
+### Example Error
+
+If a database error occurs, you'll receive a 500 status code with the error details:
+
+```json
+{
+  "code": "ER_BAD_FIELD_ERROR",
+  "errno": 1054,
+  "sqlMessage": "Unknown column 'invalid_field' in 'field list'",
+  "sqlState": "42S22"
+}
+```
+
+---
+
+## Room Types
+
+<Tabs>
+  <Tab title="Common Types">
+    Typical room types used in the system:
+    
+    - **Individual** - Single occupancy room
+    - **Doble** - Double occupancy room
+    - **Suite** - Luxury suite with multiple rooms
+    - **Suite Presidencial** - Presidential suite
+    - **Deluxe** - Deluxe room with premium amenities
+    - **Premium** - Premium category rooms
+  </Tab>
+  <Tab title="Pricing Guidelines">
+    Example pricing structure:
+    
+    | Room Type | Price Range (MXN) |
+    |-----------|------------------|
+    | Individual | 800 - 1,200 |
+    | Doble | 1,200 - 1,800 |
+    | Deluxe | 1,800 - 2,500 |
+    | Suite | 2,500 - 3,500 |
+    | Suite Presidencial | 3,500+ |
+  </Tab>
+</Tabs>
+
+---
+
+## Implementation Details
+
+<Expandable title="View Source Code Reference">
+
+The Rooms API is implemented in the following files:
+
+**Router**: `reservaionFronEnd/router/habitaciones.Router.js`
+```javascript
+router.get('/habitaciones', service.obtenerListHabitacionesService);
+router.post('/habitaciones', service.addDataHabitaciones);
+router.put('/habitaciones/:id', service.updateDataHabitaciones);
+router.delete('/habitaciones/:id', service.deleteDataHabitaciones);
+```
+
+**Controller**: `reservaionFronEnd/controllers/habitaciones.controllers.js`
+
+The controller executes direct SQL queries against the `habitaciones` table:
+- `SELECT * FROM habitaciones` - Get all rooms
+- `INSERT INTO habitaciones (nombre, tipo, precio) VALUES (?, ?, ?)` - Create room
+- `UPDATE habitaciones SET nombre=?, tipo=?, precio=? WHERE id=?` - Update room
+- `DELETE FROM habitaciones WHERE id=?` - Delete room
+
+</Expandable>
+
+---
+
+## Database Schema
+
+The `habitaciones` table structure:
+
+| Column | Type         | Description                        |
+|--------|--------------|------------------------------------|
+| id     | INTEGER      | Primary key, auto-increment        |
+| nombre | VARCHAR      | Room name or number                |
+| tipo   | VARCHAR      | Room type classification           |
+| precio | DECIMAL      | Room price per night               |
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Room Naming Conventions">
+    - Use consistent numbering schemes (e.g., floor + room number: 101, 102, 201)
+    - Consider adding wing or building identifiers for large properties
+    - Keep names short and memorable
+  </Accordion>
+  
+  <Accordion title="Pricing Strategy">
+    - Store prices as decimal values for accuracy
+    - Update prices during off-peak seasons
+    - Consider dynamic pricing based on demand
+    - Include all taxes in the base price or document separately
+  </Accordion>
+  
+  <Accordion title="Room Type Management">
+    - Maintain consistent type names across the system
+    - Document what amenities are included in each type
+    - Consider creating a separate room types reference table
+  </Accordion>
+</AccordionGroup>

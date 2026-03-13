@@ -1,0 +1,171 @@
+---
+title: 'API Overview'
+description: 'Complete reference for the Hotel Reservation System REST API'
+icon: 'code'
+---
+
+## Introduction
+
+The Hotel Reservation System API provides a RESTful interface for managing clients, rooms, and reservations. This API enables you to build hotel management applications with full CRUD (Create, Read, Update, Delete) operations.
+
+## Base URL
+
+All API endpoints are relative to the base URL:
+
+```
+http://localhost:4000
+```
+
+## API Architecture
+
+The API is built with:
+- **Framework**: Express.js
+- **Database**: MySQL
+- **Data Format**: JSON
+- **Architecture**: RESTful API with standard HTTP methods
+
+## Authentication
+
+<Warning>
+Currently, the API does not implement authentication. All endpoints are publicly accessible. This should be addressed before deploying to production.
+</Warning>
+
+## CORS Configuration
+
+The API has CORS (Cross-Origin Resource Sharing) enabled for all origins, allowing frontend applications from any domain to make requests to the API.
+
+```javascript
+app.use(cors());
+```
+
+## Content Type
+
+All API requests and responses use JSON format. Ensure your requests include the appropriate header:
+
+```
+Content-Type: application/json
+```
+
+## HTTP Methods
+
+The API uses standard HTTP methods:
+
+- `GET` - Retrieve resources
+- `POST` - Create new resources
+- `PUT` - Update existing resources
+- `DELETE` - Remove resources
+
+## Response Format
+
+API responses follow these patterns:
+
+### Success Responses
+
+<Tabs>
+  <Tab title="GET Requests">
+    Returns an array of objects:
+    ```json
+    [
+      {
+        "id": 1,
+        "field1": "value1",
+        "field2": "value2"
+      }
+    ]
+    ```
+  </Tab>
+  <Tab title="POST/PUT/DELETE Requests">
+    Returns a success message:
+    ```json
+    {
+      "message": "Operation completed successfully"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Error Responses
+
+Errors are thrown as exceptions and will return a 500 status code with the database error details.
+
+## API Resources
+
+The API is organized around three main resources:
+
+<CardGroup cols={3}>
+  <Card title="Clients" icon="users" href="/api/clients">
+    Manage hotel clients and their contact information
+  </Card>
+  <Card title="Rooms" icon="bed" href="/api/rooms">
+    Manage hotel rooms, types, and pricing
+  </Card>
+  <Card title="Reservations" icon="calendar-check" href="/api/reservations">
+    Manage room reservations and bookings
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+Here's a simple example to get you started:
+
+<CodeGroup>
+```bash cURL
+# Get all clients
+curl http://localhost:4000/clientes
+
+# Create a new client
+curl -X POST http://localhost:4000/clientes \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"John Doe","correo":"john@example.com","telefono":"555-1234"}'
+```
+
+```javascript JavaScript
+// Get all clients
+fetch('http://localhost:4000/clientes')
+  .then(response => response.json())
+  .then(data => console.log(data));
+
+// Create a new client
+fetch('http://localhost:4000/clientes', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    nombre: 'John Doe',
+    correo: 'john@example.com',
+    telefono: '555-1234'
+  })
+})
+  .then(response => response.json())
+  .then(data => console.log(data));
+```
+
+```python Python
+import requests
+
+# Get all clients
+response = requests.get('http://localhost:4000/clientes')
+clients = response.json()
+
+# Create a new client
+new_client = {
+    'nombre': 'John Doe',
+    'correo': 'john@example.com',
+    'telefono': '555-1234'
+}
+response = requests.post(
+    'http://localhost:4000/clientes',
+    json=new_client
+)
+print(response.json())
+```
+</CodeGroup>
+
+## Rate Limiting
+
+<Info>
+Currently, there are no rate limits implemented. Consider implementing rate limiting for production use.
+</Info>
+
+## Support
+
+For issues or questions about the API, please contact the development team or refer to the individual endpoint documentation pages.

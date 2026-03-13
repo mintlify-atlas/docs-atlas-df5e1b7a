@@ -1,0 +1,121 @@
+---
+title: Introduction
+description: Welcome to the Hotel Reservation System - a complete solution for managing hotel operations
+---
+
+<img
+  className="block"
+  src="/images/hero-light.svg"
+  alt="Hero Light"
+/>
+
+## Welcome to Hotel Reservation System
+
+A full-stack hotel management system built with Node.js, Express, and MySQL. Manage clients, rooms, and reservations through an intuitive web interface and powerful REST API.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get your hotel system running in minutes
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api/overview"
+  >
+    Explore the complete REST API
+  </Card>
+  <Card
+    title="Client Management"
+    icon="users"
+    href="/features/clients"
+  >
+    Learn how to manage hotel guests
+  </Card>
+  <Card
+    title="Room Management"
+    icon="bed"
+    href="/features/rooms"
+  >
+    Configure and manage room inventory
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="Client Management" icon="address-card">
+    Complete CRUD operations for managing guest information including names, emails, and phone numbers
+  </Card>
+  <Card title="Room Inventory" icon="door-open">
+    Track room types, pricing, and availability with real-time updates
+  </Card>
+  <Card title="Reservations" icon="calendar-check">
+    Manage bookings with folio numbers and guest associations
+  </Card>
+  <Card title="REST API" icon="server">
+    RESTful API built with Express.js for easy integration
+  </Card>
+  <Card title="MySQL Database" icon="database">
+    Reliable data persistence with MySQL
+  </Card>
+  <Card title="Web Interface" icon="window">
+    Bootstrap-powered UI for intuitive management
+  </Card>
+</CardGroup>
+
+## Architecture Overview
+
+The system follows a clean MVC architecture:
+
+- **Backend**: Node.js with Express.js framework
+- **Database**: MySQL for data persistence
+- **Frontend**: Vanilla JavaScript with Bootstrap
+- **API**: RESTful endpoints with CORS support
+
+<Note>
+  This system is designed for small to medium-sized hotels looking for a straightforward management solution.
+</Note>
+
+## Quick Example
+
+Get started with a simple API call to fetch all clients:
+
+```bash
+curl http://localhost:4000/clientes
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Juan Pérez",
+    "correo": "juan@example.com",
+    "telefono": "555-0123"
+  }
+]
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation Guide"
+    icon="download"
+    href="/installation"
+  >
+    Set up your development environment
+  </Card>
+  <Card
+    title="Database Setup"
+    icon="database"
+    href="/deployment/database-setup"
+  >
+    Configure MySQL and create tables
+  </Card>
+</CardGroup>

@@ -1,0 +1,386 @@
+---
+title: Configuration
+description: Configure environment variables, database connections, and application settings for the Hotel Reservation System
+---
+
+Proper configuration is essential for deploying the Hotel Reservation System. This guide covers all configuration settings for both the backend API server and frontend application.
+
+## Backend Configuration
+
+The backend server requires configuration for database connections, server ports, and CORS settings.
+
+### Database Connection
+
+The database connection is configured in `/reservaionFronEnd/model/database.js`. This file establishes the MySQL connection used throughout the application.
+
+<Steps>
+  <Step title="Locate Configuration File">
+    The database configuration is located at:
+
+    ```
+    reservaionFronEnd/model/database.js
+    ```
+  </Step>
+
+  <Step title="Configure Connection Settings">
+    Edit the connection parameters to match your environment:
+
+    ```javascript reservaionFronEnd/model/database.js
+    const mysql = require('mysql2');
+
+    const conexion = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '1234',
+        database: 'BDReservacion'
+    });
+
+    conexion.connect((err) =>{
+        if (err) throw err;
+        console.log("Conexion exitosa a la base de datos")
+    })
+
+    module.exports = conexion;
+    ```
+
+    **Configuration Parameters:**
+
+    | Parameter | Default Value | Description |
+    |-----------|---------------|-------------|
+    | `host` | `localhost` | MySQL server hostname or IP address |
+    | `user` | `root` | Database username |
+    | `password` | `1234` | Database password |
+    | `database` | `BDReservacion` | Database name |
+  </Step>
+
+  <Step title="Production Settings">
+    For production deployments, update with secure credentials:
+
+    ```javascript
+    const conexion = mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'reservacion_user',
+        password: process.env.DB_PASSWORD || 'secure_password_here',
+        database: process.env.DB_NAME || 'BDReservacion',
+        port: process.env.DB_PORT || 3306
+    });
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  Never commit database credentials to version control. Use environment variables or secure credential management systems for production.
+</Warning>
+
+### Server Configuration
+
+The Express server is configured in `/reservaionFronEnd/server.js` and handles API routing, middleware, and port settings.
+
+<Steps>
+  <Step title="Server Port Configuration">
+    The server port is configured in `server.js:13`:
+
+    ```javascript reservaionFronEnd/server.js
+    const PORT = 4000;
+    ```
+
+    To use an environment variable:
+
+    ```javascript
+    const PORT = process.env.PORT || 4000;
+    ```
+
+    <Note>
+      The default port is 4000. Ensure this port is not in use by another application and is allowed through your firewall.
+    </Note>
+  </Step>
+
+  <Step title="Middleware Configuration">
+    The server uses the following middleware (configured in `server.js:16-22`):
+
+    ```javascript reservaionFronEnd/server.js
+    const express = require('express');
+    const bodyParser = require('body-parser');
+    const cors = require("cors");
+
+    const app = express();
+
+    // Middleware configuration
+    app.use(cors());
+    app.use(bodyParser.json());
+    ```
+
+    **Middleware Components:**
+    - **CORS**: Enables Cross-Origin Resource Sharing for frontend communication
+    - **body-parser**: Parses incoming JSON request bodies
+  </Step>
+
+  <Step title="CORS Configuration for Production">
+    For production, configure CORS to only allow requests from your frontend domain:
+
+    ```javascript
+    const corsOptions = {
+      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      optionsSuccessStatus: 200,
+      credentials: true
+    };
+
+    app.use(cors(corsOptions));
+    ```
+  </Step>
+</Steps>
+
+### API Routes Configuration
+
+The server includes three main route groups (configured in `server.js:4-6`, `20-22`):
+
+```javascript reservaionFronEnd/server.js
+const clientesRouter = require('./router/clientes.Router');
+const habitacionRouter = require('./router/habitaciones.Router');
+const reservacionRouter = require('./router/reservaciones.Router');
+
+app.use(clientesRouter);
+app.use(habitacionRouter);
+app.use(reservacionRouter);
+```
+
+**Available API Endpoints:**
+
+<CodeGroup>
+  ```text Clientes (Clients)
+  GET    /clientes      - List all clients
+  POST   /clientes      - Create new client
+  PUT    /clientes/:id  - Update client
+  DELETE /clientes/:id  - Delete client
+  ```
+
+  ```text Habitaciones (Rooms)
+  GET    /habitaciones      - List all rooms
+  POST   /habitaciones      - Create new room
+  PUT    /habitaciones/:id  - Update room
+  DELETE /habitaciones/:id  - Delete room
+  ```
+
+  ```text Reservaciones (Reservations)
+  GET    /reservaciones      - List all reservations
+  POST   /reservaciones      - Create new reservation
+  PUT    /reservaciones/:id  - Update reservation
+  DELETE /reservaciones/:id  - Delete reservation
+  ```
+</CodeGroup>
+
+## Frontend Configuration
+
+The frontend consists of HTML pages that connect to the backend API.
+
+### API Endpoint Configuration
+
+The frontend connects to the backend via the URL configured in JavaScript files. For example, in `/reservacionBackEnd/js/scripts.js:1`:
+
+```javascript reservacionBackEnd/js/scripts.js
+const URL = 'http://localhost:4000/clientes';
+```
+
+<Steps>
+  <Step title="Configure Backend URL">
+    Update the API URLs in all frontend JavaScript files:
+
+    **Files to update:**
+    - `js/scripts.js` - Clientes endpoints
+    - `js/scriptshabitaciones.js` - Habitaciones endpoints
+    - `js/scriptsreservaciones.js` - Reservaciones endpoints
+
+    ```javascript
+    // Development
+    const URL = 'http://localhost:4000/clientes';
+
+    // Production
+    const URL = 'https://api.yourdomain.com/clientes';
+    ```
+  </Step>
+
+  <Step title="Use Environment-Based Configuration">
+    Create a configuration file for environment-based URLs:
+
+    ```javascript config.js
+    const API_BASE_URL = window.location.hostname === 'localhost'
+      ? 'http://localhost:4000'
+      : 'https://api.yourdomain.com';
+
+    const API_ENDPOINTS = {
+      clientes: `${API_BASE_URL}/clientes`,
+      habitaciones: `${API_BASE_URL}/habitaciones`,
+      reservaciones: `${API_BASE_URL}/reservaciones`
+    };
+    ```
+
+    Then reference in your scripts:
+
+    ```javascript
+    const URL = API_ENDPOINTS.clientes;
+    ```
+  </Step>
+</Steps>
+
+## Environment Variables
+
+For production deployments, use environment variables to manage configuration:
+
+### Create .env File
+
+Create a `.env` file in the backend directory:
+
+```bash .env
+# Database Configuration
+DB_HOST=localhost
+DB_USER=reservacion_user
+DB_PASSWORD=your_secure_password
+DB_NAME=BDReservacion
+DB_PORT=3306
+
+# Server Configuration
+PORT=4000
+NODE_ENV=production
+
+# Frontend Configuration
+FRONTEND_URL=https://yourdomain.com
+```
+
+<Warning>
+  Add `.env` to your `.gitignore` file to prevent committing sensitive credentials to version control.
+</Warning>
+
+### Load Environment Variables
+
+Install the `dotenv` package:
+
+```bash
+npm install dotenv
+```
+
+Load environment variables in your server file:
+
+```javascript server.js
+require('dotenv').config();
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 4000;
+```
+
+## Configuration Checklist
+
+Before deploying, verify all configurations:
+
+<Steps>
+  <Step title="Database Configuration">
+    - [ ] Database credentials configured
+    - [ ] Database name matches created database
+    - [ ] Connection successful from application
+    - [ ] Using dedicated database user (not root)
+  </Step>
+
+  <Step title="Server Configuration">
+    - [ ] Server port configured and available
+    - [ ] CORS settings configured for frontend domain
+    - [ ] Middleware properly initialized
+    - [ ] All routes registered
+  </Step>
+
+  <Step title="Frontend Configuration">
+    - [ ] API URLs point to correct backend server
+    - [ ] Environment-based configuration implemented
+    - [ ] CORS allowing frontend requests
+  </Step>
+
+  <Step title="Security Configuration">
+    - [ ] Strong database passwords set
+    - [ ] Environment variables used for secrets
+    - [ ] `.env` file in `.gitignore`
+    - [ ] CORS restricted to known domains
+  </Step>
+</Steps>
+
+## Testing Configuration
+
+Verify your configuration is correct:
+
+### Test Database Connection
+
+```bash
+node -e "require('./reservaionFronEnd/model/database.js')"
+```
+
+Expected output:
+```
+Conexion exitosa a la base de datos
+```
+
+### Test Server Startup
+
+```bash
+node reservaionFronEnd/server.js
+```
+
+Expected output:
+```
+Conexion exitosa a la base de datos
+Servidor iniciado en el puerto 4000
+```
+
+### Test API Endpoints
+
+```bash
+curl http://localhost:4000/clientes
+curl http://localhost:4000/habitaciones
+curl http://localhost:4000/reservaciones
+```
+
+Each should return a JSON array (empty or with data).
+
+## Common Configuration Issues
+
+<Accordion title="Database connection errors">
+  **Symptom:** Application fails to start with connection errors
+
+  **Solutions:**
+  - Verify MySQL is running: `sudo systemctl status mysql`
+  - Check credentials in `database.js`
+  - Ensure database exists: `mysql -u root -p -e "SHOW DATABASES;"`
+  - Verify user has proper permissions
+</Accordion>
+
+<Accordion title="CORS errors in browser">
+  **Symptom:** Frontend shows CORS policy errors in browser console
+
+  **Solutions:**
+  - Ensure `cors` middleware is installed and configured
+  - Add frontend domain to CORS whitelist
+  - Check server is running and accessible
+  - Verify API URL in frontend is correct
+</Accordion>
+
+<Accordion title="Port already in use">
+  **Symptom:** Server fails with "EADDRINUSE" error
+
+  **Solutions:**
+  - Check what's using the port: `lsof -i :4000`
+  - Kill the process: `kill -9 <PID>`
+  - Change PORT in configuration to an available port
+</Accordion>
+
+## Next Steps
+
+Once configuration is complete:
+
+1. [Deploy the application](/deployment/deployment) to your server
+2. Test all API endpoints with sample data
+3. Configure monitoring and logging
+4. Set up automated backups
+
+<Note>
+  Keep a copy of your configuration settings in a secure location. Document any changes to default settings for future maintenance.
+</Note>

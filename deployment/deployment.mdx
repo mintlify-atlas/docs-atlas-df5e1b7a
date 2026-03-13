@@ -1,0 +1,661 @@
+---
+title: Deployment
+description: Deploy the Hotel Reservation System to development and production environments
+---
+
+This guide covers deploying the Hotel Reservation System backend API server and frontend application across different environments.
+
+## Prerequisites
+
+Before deploying, ensure you have:
+
+- [Database setup](/deployment/database-setup) completed
+- [Configuration](/deployment/configuration) properly set
+- Node.js 14.x or higher installed
+- npm or yarn package manager
+- Web server for frontend (Apache, Nginx, or similar)
+
+<Warning>
+  Complete the database setup and configuration steps before proceeding with deployment. The application will fail to start without a properly configured database connection.
+</Warning>
+
+## Backend Deployment
+
+The backend is a Node.js/Express API server that handles all business logic and database operations.
+
+### Install Dependencies
+
+<Steps>
+  <Step title="Navigate to Backend Directory">
+    ```bash
+    cd reservaionFronEnd
+    ```
+  </Step>
+
+  <Step title="Install Required Packages">
+    The application requires the following dependencies (defined in `package.json`):
+
+    ```json package.json
+    {
+      "dependencies": {
+        "body-parser": "^1.20.3",
+        "cors": "^2.8.5",
+        "express": "^4.21.1",
+        "mysql2": "^3.11.4"
+      }
+    }
+    ```
+
+    Install all dependencies:
+
+    ```bash
+    npm install
+    ```
+
+    This installs:
+    - **express**: Web framework for Node.js
+    - **body-parser**: Middleware for parsing request bodies
+    - **cors**: Cross-Origin Resource Sharing middleware
+    - **mysql2**: MySQL database driver
+  </Step>
+
+  <Step title="Verify Installation">
+    Confirm all packages installed successfully:
+
+    ```bash
+    npm list --depth=0
+    ```
+
+    Expected output:
+    ```
+    reservacionhospedaje@1.0.0
+    ├── body-parser@1.20.3
+    ├── cors@2.8.5
+    ├── express@4.21.1
+    └── mysql2@3.11.4
+    ```
+  </Step>
+</Steps>
+
+### Development Deployment
+
+<Steps>
+  <Step title="Start the Server">
+    Run the server directly using Node.js:
+
+    ```bash
+    node server.js
+    ```
+
+    You should see:
+    ```
+    Conexion exitosa a la base de datos
+    Servidor iniciado en el puerto 4000
+    ```
+  </Step>
+
+  <Step title="Verify Server is Running">
+    Test the server with curl or your browser:
+
+    ```bash
+    # Test clientes endpoint
+    curl http://localhost:4000/clientes
+
+    # Test habitaciones endpoint
+    curl http://localhost:4000/habitaciones
+
+    # Test reservaciones endpoint
+    curl http://localhost:4000/reservaciones
+    ```
+
+    Each should return a JSON array.
+  </Step>
+
+  <Step title="Keep Server Running">
+    For development, you can use `nodemon` for auto-restart on file changes:
+
+    ```bash
+    # Install nodemon globally
+    npm install -g nodemon
+
+    # Run with nodemon
+    nodemon server.js
+    ```
+  </Step>
+</Steps>
+
+### Production Deployment
+
+For production, use a process manager to keep the server running and handle crashes.
+
+<Steps>
+  <Step title="Update package.json Scripts">
+    Add start script to `package.json`:
+
+    ```json package.json
+    {
+      "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Install PM2 Process Manager">
+    PM2 is a production process manager for Node.js applications:
+
+    ```bash
+    # Install PM2 globally
+    npm install -g pm2
+
+    # Start the application
+    pm2 start server.js --name "hotel-reservation-api"
+
+    # View logs
+    pm2 logs hotel-reservation-api
+
+    # Check status
+    pm2 status
+    ```
+
+    <Note>
+      PM2 automatically restarts your application if it crashes and can restart on system reboot.
+    </Note>
+  </Step>
+
+  <Step title="Configure Auto-Start on Boot">
+    Set PM2 to start on system boot:
+
+    ```bash
+    # Generate startup script
+    pm2 startup
+
+    # Save current process list
+    pm2 save
+    ```
+  </Step>
+
+  <Step title="Monitor Application">
+    Use PM2 monitoring commands:
+
+    ```bash
+    # Real-time monitoring
+    pm2 monit
+
+    # View logs
+    pm2 logs
+
+    # Restart application
+    pm2 restart hotel-reservation-api
+
+    # Stop application
+    pm2 stop hotel-reservation-api
+
+    # Delete from PM2
+    pm2 delete hotel-reservation-api
+    ```
+  </Step>
+</Steps>
+
+## Frontend Deployment
+
+The frontend consists of static HTML, CSS, and JavaScript files that need to be served by a web server.
+
+### Local Development
+
+<Steps>
+  <Step title="Use a Simple HTTP Server">
+    For local testing, use a simple HTTP server:
+
+    <CodeGroup>
+      ```bash Python SimpleHTTPServer
+      # Navigate to frontend directory
+      cd reservacionBackEnd
+
+      # Python 3
+      python3 -m http.server 8080
+
+      # Python 2
+      python -m SimpleHTTPServer 8080
+      ```
+
+      ```bash Node.js http-server
+      # Install http-server globally
+      npm install -g http-server
+
+      # Navigate to frontend directory
+      cd reservacionBackEnd
+
+      # Start server
+      http-server -p 8080
+      ```
+
+      ```bash Live Server (VS Code)
+      # Install Live Server extension in VS Code
+      # Right-click index.html and select "Open with Live Server"
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Access the Application">
+    Open your browser and navigate to:
+
+    - Clientes: `http://localhost:8080/index.html`
+    - Habitaciones: `http://localhost:8080/habitaciones.html`
+    - Reservaciones: `http://localhost:8080/reservaciones.html`
+    - Menu: `http://localhost:8080/Menu.html`
+  </Step>
+</Steps>
+
+### Production Deployment with Nginx
+
+<Steps>
+  <Step title="Install Nginx">
+    ```bash
+    # Ubuntu/Debian
+    sudo apt update
+    sudo apt install nginx
+
+    # Start Nginx
+    sudo systemctl start nginx
+    sudo systemctl enable nginx
+    ```
+  </Step>
+
+  <Step title="Copy Frontend Files">
+    Copy your frontend files to the web server directory:
+
+    ```bash
+    # Create application directory
+    sudo mkdir -p /var/www/hotel-reservation
+
+    # Copy files
+    sudo cp -r reservacionBackEnd/* /var/www/hotel-reservation/
+
+    # Set permissions
+    sudo chown -R www-data:www-data /var/www/hotel-reservation
+    sudo chmod -R 755 /var/www/hotel-reservation
+    ```
+  </Step>
+
+  <Step title="Configure Nginx">
+    Create an Nginx configuration file:
+
+    ```nginx /etc/nginx/sites-available/hotel-reservation
+    server {
+        listen 80;
+        server_name yourdomain.com www.yourdomain.com;
+
+        root /var/www/hotel-reservation;
+        index index.html Menu.html;
+
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        # API proxy (optional - if serving API from same domain)
+        location /api/ {
+            proxy_pass http://localhost:4000/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Cache static assets
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+    ```
+  </Step>
+
+  <Step title="Enable Site Configuration">
+    ```bash
+    # Create symbolic link
+    sudo ln -s /etc/nginx/sites-available/hotel-reservation /etc/nginx/sites-enabled/
+
+    # Test configuration
+    sudo nginx -t
+
+    # Reload Nginx
+    sudo systemctl reload nginx
+    ```
+  </Step>
+
+  <Step title="Configure SSL (Recommended)">
+    Use Let's Encrypt for free SSL certificates:
+
+    ```bash
+    # Install Certbot
+    sudo apt install certbot python3-certbot-nginx
+
+    # Obtain and install certificate
+    sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+    # Auto-renewal is configured automatically
+    # Test renewal process
+    sudo certbot renew --dry-run
+    ```
+  </Step>
+</Steps>
+
+### Production Deployment with Apache
+
+<Steps>
+  <Step title="Install Apache">
+    ```bash
+    # Ubuntu/Debian
+    sudo apt update
+    sudo apt install apache2
+
+    # Start Apache
+    sudo systemctl start apache2
+    sudo systemctl enable apache2
+    ```
+  </Step>
+
+  <Step title="Configure Virtual Host">
+    Create an Apache configuration:
+
+    ```apache /etc/apache2/sites-available/hotel-reservation.conf
+    <VirtualHost *:80>
+        ServerName yourdomain.com
+        ServerAlias www.yourdomain.com
+        DocumentRoot /var/www/hotel-reservation
+
+        <Directory /var/www/hotel-reservation>
+            Options -Indexes +FollowSymLinks
+            AllowOverride All
+            Require all granted
+        </Directory>
+
+        # API Proxy (optional)
+        ProxyPreserveHost On
+        ProxyPass /api http://localhost:4000
+        ProxyPassReverse /api http://localhost:4000
+
+        ErrorLog ${APACHE_LOG_DIR}/hotel-reservation-error.log
+        CustomLog ${APACHE_LOG_DIR}/hotel-reservation-access.log combined
+    </VirtualHost>
+    ```
+  </Step>
+
+  <Step title="Enable Site and Modules">
+    ```bash
+    # Enable required modules
+    sudo a2enmod proxy
+    sudo a2enmod proxy_http
+    sudo a2enmod rewrite
+
+    # Enable site
+    sudo a2ensite hotel-reservation.conf
+
+    # Test configuration
+    sudo apache2ctl configtest
+
+    # Reload Apache
+    sudo systemctl reload apache2
+    ```
+  </Step>
+</Steps>
+
+## Docker Deployment
+
+For containerized deployment, create Docker configurations:
+
+### Backend Dockerfile
+
+```dockerfile Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+
+EXPOSE 4000
+
+CMD ["node", "server.js"]
+```
+
+### Docker Compose
+
+```yaml docker-compose.yml
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hotel-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: BDReservacion
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - hotel-network
+
+  backend:
+    build:
+      context: ./reservaionFronEnd
+      dockerfile: Dockerfile
+    container_name: hotel-backend
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: BDReservacion
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mysql
+    networks:
+      - hotel-network
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:alpine
+    container_name: hotel-frontend
+    volumes:
+      - ./reservacionBackEnd:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+    networks:
+      - hotel-network
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+
+networks:
+  hotel-network:
+    driver: bridge
+```
+
+### Deploy with Docker
+
+```bash
+# Build and start containers
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+## Post-Deployment Verification
+
+<Steps>
+  <Step title="Test Backend API">
+    Verify all endpoints are responding:
+
+    ```bash
+    # Test GET endpoints
+    curl https://yourdomain.com/api/clientes
+    curl https://yourdomain.com/api/habitaciones
+    curl https://yourdomain.com/api/reservaciones
+
+    # Test POST endpoint
+    curl -X POST https://yourdomain.com/api/clientes \
+      -H "Content-Type: application/json" \
+      -d '{"nombre":"Test User","correo":"test@example.com","telefono":"555-0100"}'
+    ```
+  </Step>
+
+  <Step title="Test Frontend">
+    - Open each page in your browser
+    - Test creating, updating, and deleting records
+    - Verify data persists in database
+    - Check browser console for errors
+  </Step>
+
+  <Step title="Monitor Server">
+    Check server logs for errors:
+
+    ```bash
+    # PM2 logs
+    pm2 logs hotel-reservation-api
+
+    # Nginx logs
+    sudo tail -f /var/log/nginx/error.log
+
+    # Apache logs
+    sudo tail -f /var/log/apache2/error.log
+    ```
+  </Step>
+
+  <Step title="Database Verification">
+    Connect to MySQL and verify tables:
+
+    ```sql
+    USE BDReservacion;
+    SELECT COUNT(*) FROM cliente;
+    SELECT COUNT(*) FROM habitaciones;
+    SELECT COUNT(*) FROM reservaciones;
+    ```
+  </Step>
+</Steps>
+
+## Production Considerations
+
+<Accordion title="Security">
+  - Use HTTPS/SSL certificates for all connections
+  - Set strong database passwords
+  - Use environment variables for sensitive data
+  - Restrict database access to application server only
+  - Implement rate limiting on API endpoints
+  - Add authentication/authorization if needed
+</Accordion>
+
+<Accordion title="Performance">
+  - Enable gzip compression in web server
+  - Configure caching for static assets
+  - Add database indexes for frequently queried fields
+  - Use connection pooling for database connections
+  - Consider CDN for static assets
+  - Monitor server resources (CPU, memory, disk)
+</Accordion>
+
+<Accordion title="Reliability">
+  - Set up automated database backups
+  - Configure PM2 or systemd for auto-restart
+  - Implement health check endpoints
+  - Set up monitoring and alerting
+  - Create disaster recovery plan
+  - Document deployment procedures
+</Accordion>
+
+<Accordion title="Maintenance">
+  - Keep Node.js and dependencies updated
+  - Regularly backup database
+  - Monitor disk space usage
+  - Review and rotate logs
+  - Test backup restoration procedures
+  - Document configuration changes
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="Server won't start">
+  **Check these common issues:**
+  - Database connection credentials incorrect
+  - Port 4000 already in use
+  - Missing dependencies (`npm install`)
+  - MySQL server not running
+  - Database doesn't exist
+
+  **Debug steps:**
+  ```bash
+  # Check MySQL status
+  sudo systemctl status mysql
+
+  # Check port availability
+  lsof -i :4000
+
+  # Test database connection
+  mysql -u root -p BDReservacion
+  ```
+</Accordion>
+
+<Accordion title="Frontend can't connect to backend">
+  **Possible causes:**
+  - Backend server not running
+  - CORS configuration incorrect
+  - Wrong API URL in frontend code
+  - Firewall blocking requests
+
+  **Solutions:**
+  - Verify backend is running: `pm2 status`
+  - Check CORS middleware is enabled
+  - Update API URLs in JavaScript files
+  - Check browser console for specific errors
+</Accordion>
+
+<Accordion title="Database query errors">
+  **Common errors:**
+  - Table doesn't exist: Run database setup SQL
+  - Access denied: Check user permissions
+  - Connection timeout: Verify MySQL is running
+
+  **Debug:**
+  ```bash
+  # Check tables exist
+  mysql -u root -p -e "USE BDReservacion; SHOW TABLES;"
+
+  # Check user permissions
+  mysql -u root -p -e "SHOW GRANTS FOR 'reservacion_user'@'localhost';"
+  ```
+</Accordion>
+
+## Next Steps
+
+After successful deployment:
+
+- Set up monitoring and logging
+- Configure automated backups
+- Implement error tracking (e.g., Sentry)
+- Add analytics if needed
+- Create operational runbooks
+- Train team on maintenance procedures
+
+<Note>
+  Always test your deployment process in a staging environment before deploying to production. Keep documentation updated as your infrastructure evolves.
+</Note>

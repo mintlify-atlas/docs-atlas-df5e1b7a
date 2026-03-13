@@ -1,0 +1,545 @@
+---
+title: 'Reservation Management'
+description: 'Create, update, and manage hotel room reservations linking clients to rooms'
+icon: 'calendar-check'
+---
+
+## Overview
+
+The Reservation Management module is the core booking system that connects clients with rooms. Staff can create new reservations, update booking details, and manage the complete reservation lifecycle.
+
+<Note>
+  Reservation data is managed through the API endpoint `http://localhost:4000/reservaciones`
+</Note>
+
+## User Interface
+
+The reservations interface (`reservaciones.html`) displays a streamlined table view with:
+
+- **Folio**: Unique reservation reference number
+- **Cliente**: Client name associated with the reservation
+- **Acciones**: Action buttons for updating or deleting reservations
+
+## Managing Reservations
+
+<Steps>
+  <Step title="View All Reservations">
+    The reservation list loads automatically when accessing the page, displaying all active and past bookings.
+
+    ```javascript
+    async function loadReservaciones() {
+        const response = await fetch(URL_RESERVACIONES);
+        reservaciones = await response.json();
+        
+        // Render each reservation in the table
+        reservaciones.forEach(reservacion => {
+            // Display folio, client name, and action buttons
+        });
+    }
+    ```
+
+    The table provides a quick overview of all reservations with easy access to management actions.
+  </Step>
+
+  <Step title="Create a New Reservation">
+    Click the **"Nueva Reservación"** (New Reservation) button to open the booking modal.
+
+    <Accordion title="Reservation Form Details">
+      The reservation form requires:
+
+      **Folio**
+      - Unique reference number for the reservation
+      - Used to track and identify bookings
+      - Should be auto-generated in production systems
+
+      **Cliente** (Client)
+      - Name of the guest making the reservation
+      - Should ideally be a dropdown selecting from existing clients
+      - Links the booking to client contact information
+
+      After entering the details, click **"Guardar"** (Save) to create the reservation.
+    </Accordion>
+
+    <Note>
+      In a production environment, the reservation form should include additional fields like check-in date, check-out date, room number, number of guests, and special requests.
+    </Note>
+  </Step>
+
+  <Step title="Update Reservation Details">
+    Click the **"Actualizar"** (Update) button next to any reservation to modify its details.
+
+    The update modal opens pre-filled with current reservation information:
+    - Folio number
+    - Client name
+
+    Make necessary changes and click **"Actualizar"** to save, or **"Cerrar"** (Close) to cancel.
+  </Step>
+
+  <Step title="Cancel a Reservation">
+    Click the **"Eliminar"** (Delete) button to cancel and remove a reservation from the system.
+
+    <Note>
+      Implement a confirmation dialog before deletion to prevent accidental cancellations. Consider maintaining a cancellation log for audit purposes.
+    </Note>
+  </Step>
+</Steps>
+
+## API Implementation
+
+The reservation system implements complete CRUD operations:
+
+<Tabs>
+  <Tab title="Create Reservation">
+    ```javascript
+    async function guardarReservacion() {
+        const folio = document.getElementById("folioReservacion").value;
+        const nombrecliente = document.getElementById("clienteReservacion").value;
+
+        const data = { folio, nombrecliente };
+
+        try {
+            const response = await fetch(URL_RESERVACIONES, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error('Error al guardar reservación');
+
+            loadReservaciones();
+            limpiarFormulario('formDataReservacion');
+
+        } catch (error) {
+            console.error('Error al guardar reservación:', error);
+        }
+    }
+    ```
+
+    **Endpoint**: `POST /reservaciones`
+
+    **Request Body**:
+    ```json
+    {
+      "folio": "RES-2024-001",
+      "nombrecliente": "John Doe"
+    }
+    ```
+
+    After successful creation, the form clears and the reservation list refreshes.
+  </Tab>
+
+  <Tab title="Read Reservations">
+    ```javascript
+    async function loadReservaciones() {
+        try {
+            const response = await fetch(URL_RESERVACIONES);
+            reservaciones = await response.json();
+
+            let html = '';
+            reservaciones.forEach(reservacion => {
+                html += `
+                <tr>
+                    <td>${reservacion.folio}</td>
+                    <td>${reservacion.nombrecliente}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#updateReservacion" 
+                                onclick="seleccionarReservacion(${reservacion.id})">
+                            Actualizar
+                        </button>
+                        <button class="btn btn-danger btn-sm" 
+                                onclick="eliminarReservacion(${reservacion.id})">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            T_DATA_RESERVACIONES.innerHTML = html;
+
+        } catch (error) {
+            console.error('Error al cargar las reservaciones:', error);
+        }
+    }
+    ```
+
+    **Endpoint**: `GET /reservaciones`
+
+    **Response**:
+    ```json
+    [
+      {
+        "id": 1,
+        "folio": "RES-2024-001",
+        "nombrecliente": "John Doe"
+      },
+      {
+        "id": 2,
+        "folio": "RES-2024-002",
+        "nombrecliente": "Jane Smith"
+      }
+    ]
+    ```
+  </Tab>
+
+  <Tab title="Update Reservation">
+    ```javascript
+    function seleccionarReservacion(id) {
+        reservacionSeleccionada = reservaciones.find(res => res.id === id);
+        document.getElementById("folioReservacionU").value = reservacionSeleccionada.folio;
+        document.getElementById("clienteReservacionU").value = reservacionSeleccionada.nombrecliente;
+    }
+
+    async function actualizarReservacion() {
+        const folio = document.getElementById("folioReservacionU").value;
+        const nombrecliente = document.getElementById("clienteReservacionU").value;
+
+        const data = { folio, nombrecliente };
+
+        try {
+            const response = await fetch(`${URL_RESERVACIONES}/${reservacionSeleccionada.id}`, {
+                method: "PUT",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar reservación');
+
+            loadReservaciones();
+            limpiarFormulario('updateReservacion');
+
+        } catch (error) {
+            console.error('Error al actualizar reservación:', error);
+        }
+    }
+    ```
+
+    **Endpoint**: `PUT /reservaciones/:id`
+
+    **Request Body**:
+    ```json
+    {
+      "folio": "RES-2024-001-UPDATED",
+      "nombrecliente": "John M. Doe"
+    }
+    ```
+
+    The selected reservation is stored in `reservacionSeleccionada` for the update operation.
+  </Tab>
+
+  <Tab title="Delete Reservation">
+    ```javascript
+    async function eliminarReservacion(id) {
+        try {
+            const response = await fetch(`${URL_RESERVACIONES}/${id}`, { 
+                method: "DELETE" 
+            });
+            
+            if (!response.ok) throw new Error('Error al eliminar reservación');
+
+            loadReservaciones();
+
+        } catch (error) {
+            console.error('Error al eliminar reservación:', error);
+        }
+    }
+    ```
+
+    **Endpoint**: `DELETE /reservaciones/:id`
+
+    The reservation list automatically refreshes after deletion.
+  </Tab>
+</Tabs>
+
+## Reservation Data Structure
+
+Each reservation record contains:
+
+<CardGroup cols={2}>
+  <Card title="ID" icon="hashtag">
+    System-generated unique identifier for internal tracking
+  </Card>
+  <Card title="Folio" icon="receipt">
+    Customer-facing reservation reference number
+  </Card>
+  <Card title="Nombrecliente" icon="user">
+    Client name associated with the booking
+  </Card>
+  <Card title="Future: Room Info" icon="door-open">
+    Should include room number, type, and rate
+  </Card>
+  <Card title="Future: Dates" icon="calendar">
+    Check-in and check-out dates for the stay
+  </Card>
+  <Card title="Future: Status" icon="circle-check">
+    Booking status (pending, confirmed, checked-in, completed, cancelled)
+  </Card>
+</CardGroup>
+
+## UI Components
+
+### Reservation Table
+
+A simple, focused table displays all reservations:
+
+```html
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Folio</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="tDataReservaciones">
+        <!-- Dynamically populated from scriptsreservaciones.js -->
+    </tbody>
+</table>
+```
+
+### Creation Modal
+
+A Bootstrap modal handles new reservation creation:
+
+```html
+<div class="modal fade" id="formDataReservacion" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Reservación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="folioReservacion" class="form-label">Folio</label>
+                        <input type="text" class="form-control" id="folioReservacion"
+                            placeholder="Folio de la reservación">
+                    </div>
+                    <div class="mb-3">
+                        <label for="clienteReservacion" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="clienteReservacion"
+                            placeholder="Nombre del cliente">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-primary" onclick="guardarReservacion()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Update Modal
+
+A separate modal handles reservation updates:
+
+```html
+<div class="modal fade" id="updateReservacion" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Actualizar Reservación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="folioReservacionU" class="form-label">Folio</label>
+                        <input type="text" class="form-control" id="folioReservacionU">
+                    </div>
+                    <div class="mb-3">
+                        <label for="clienteReservacionU" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="clienteReservacionU">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-primary" onclick="actualizarReservacion()">Actualizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+## Helper Functions
+
+### Form Cleanup
+
+The system includes a utility function to reset forms and close modals:
+
+```javascript
+function limpiarFormulario(modalId) {
+    document.getElementById(modalId).querySelectorAll("input").forEach(input => input.value = '');
+    const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+    modal.hide();
+}
+```
+
+This ensures forms are clean for the next operation and properly closes Bootstrap modals.
+
+## Reservation Workflow
+
+<Steps>
+  <Step title="Guest Inquiry">
+    Guest contacts hotel or visits website to check availability
+  </Step>
+  <Step title="Availability Check">
+    Staff checks room availability for requested dates and room type
+  </Step>
+  <Step title="Reservation Creation">
+    Staff creates reservation linking client to available room with dates and rates
+  </Step>
+  <Step title="Confirmation">
+    System generates folio number and sends confirmation to guest
+  </Step>
+  <Step title="Check-in">
+    Upon arrival, staff updates reservation status to checked-in
+  </Step>
+  <Step title="Check-out">
+    At departure, staff marks reservation as completed and processes payment
+  </Step>
+</Steps>
+
+## Enhanced Features to Implement
+
+<CardGroup cols={2}>
+  <Card title="Date Selection" icon="calendar-days">
+    Add date pickers for check-in and check-out dates with validation to prevent invalid date ranges
+  </Card>
+  <Card title="Room Assignment" icon="bed">
+    Integrate with room inventory to select and assign specific rooms to reservations
+  </Card>
+  <Card title="Client Lookup" icon="magnifying-glass">
+    Replace text input with searchable dropdown populated from client database
+  </Card>
+  <Card title="Pricing Calculation" icon="calculator">
+    Automatically calculate total cost based on room rate and length of stay
+  </Card>
+  <Card title="Payment Tracking" icon="credit-card">
+    Add payment status and deposit tracking to manage financials
+  </Card>
+  <Card title="Confirmation Email" icon="envelope">
+    Automatically send confirmation emails with reservation details to guests
+  </Card>
+</CardGroup>
+
+## Data Validation
+
+Implement these validations for robust reservation management:
+
+<Accordion title="Required Fields">
+  - Folio number must be unique
+  - Client information must be complete
+  - Check-in date cannot be in the past
+  - Check-out date must be after check-in date
+</Accordion>
+
+<Accordion title="Availability Checks">
+  - Selected room must be available for the entire stay
+  - Prevent double-booking of rooms
+  - Block rooms under maintenance from booking
+</Accordion>
+
+<Accordion title="Business Rules">
+  - Minimum stay requirements
+  - Maximum advance booking period
+  - Cancellation policy enforcement
+  - Deposit requirements based on length of stay
+</Accordion>
+
+## Integration with Other Modules
+
+Reservations tie together multiple system components:
+
+```javascript
+// Example of enhanced reservation with client and room data
+const enhancedReservation = {
+    id: 1,
+    folio: "RES-2024-001",
+    
+    // Client information (from clients module)
+    clienteId: 5,
+    nombrecliente: "John Doe",
+    clienteEmail: "john@example.com",
+    clienteTelefono: "555-1234",
+    
+    // Room information (from rooms module)
+    habitacionId: 12,
+    numeroHabitacion: "101",
+    tipoHabitacion: "Double",
+    precioNoche: 150.00,
+    
+    // Reservation details
+    fechaEntrada: "2024-03-20",
+    fechaSalida: "2024-03-23",
+    numeroNoches: 3,
+    precioTotal: 450.00,
+    
+    // Status tracking
+    estado: "confirmed", // pending, confirmed, checked-in, completed, cancelled
+    fechaCreacion: "2024-03-01T10:30:00Z",
+    notas: "Late check-in requested"
+};
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Unique Folio Generation" icon="key">
+    Auto-generate unique folio numbers using a pattern like RES-YYYY-NNNN to avoid conflicts
+  </Card>
+  <Card title="Audit Trail" icon="clock-rotate-left">
+    Log all reservation changes (creation, updates, cancellations) with timestamps and user info
+  </Card>
+  <Card title="Overbooking Prevention" icon="shield-halved">
+    Implement real-time availability checks to prevent room conflicts
+  </Card>
+  <Card title="Cancellation Management" icon="ban">
+    Soft-delete reservations instead of permanently removing them for historical records
+  </Card>
+</CardGroup>
+
+## Error Handling
+
+All reservation operations include error management:
+
+```javascript
+try {
+    const response = await fetch(URL_RESERVACIONES, { /* options */ });
+    if (!response.ok) throw new Error('Error al guardar reservación');
+    // Success operations
+} catch (error) {
+    console.error('Error al guardar reservación:', error);
+    // Should display user notification
+}
+```
+
+<Note>
+  Enhance error handling with user-facing notifications. Display specific error messages like "Room not available for selected dates" or "Client not found in system."
+</Note>
+
+## Reporting Capabilities
+
+Reservation data enables various reports:
+
+- **Occupancy Reports**: Room utilization rates over time
+- **Revenue Reports**: Income analysis by room type and season
+- **Guest History**: Repeat guest tracking and preferences
+- **Cancellation Reports**: Analysis of cancellation patterns and reasons
+- **Forecast Reports**: Future occupancy projections based on bookings
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Client Management" icon="users" href="/features/clients">
+    Manage guest information and contact details
+  </Card>
+  <Card title="Room Management" icon="bed" href="/features/rooms">
+    Maintain hotel room inventory and pricing
+  </Card>
+</CardGroup>

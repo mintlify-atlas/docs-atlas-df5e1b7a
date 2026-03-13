@@ -1,0 +1,450 @@
+---
+title: 'Room Management'
+description: 'Manage hotel room inventory, types, and pricing in the reservation system'
+icon: 'bed'
+---
+
+## Overview
+
+The Room Management module allows hotel staff to maintain the complete room inventory. This includes adding new rooms, updating room details, managing pricing, and categorizing rooms by type.
+
+<Note>
+  All room operations interact with the API endpoint `http://localhost:4000/habitaciones`
+</Note>
+
+## User Interface
+
+The room management interface (`habitaciones.html`) provides a table view displaying:
+
+- **ID (#)**: Unique room identifier
+- **Numero**: Room number or name
+- **Tipo**: Room type (e.g., Single, Double, Suite)
+- **Precio**: Room price per night
+- **Acciones**: Action buttons for updates and deletions
+
+## Managing Rooms
+
+<Steps>
+  <Step title="View Room Inventory">
+    The room list automatically loads when accessing the page. All rooms are displayed in a sortable table format with complete details.
+
+    ```javascript
+    async function loadDataHabitacion() {
+        const response = await fetch(URL);
+        data = await response.json();
+        
+        // Renders each room into the table
+        data.forEach(habitacion => {
+            // Display room information
+        });
+    }
+    ```
+
+    The system fetches all room records from the backend and dynamically populates the table.
+  </Step>
+
+  <Step title="Add a New Room">
+    Click the **"Nueva Habitación"** (New Room) button to open the room creation modal.
+
+    <Accordion title="Room Creation Form Fields">
+      The form requires three pieces of information:
+
+      **Numero** (Number)
+      - The room identifier or number (e.g., "101", "Penthouse Suite")
+      - This is how staff and guests will reference the room
+
+      **Tipo** (Type)
+      - Room category (e.g., "Single", "Double", "Suite", "Deluxe")
+      - Used for filtering and categorization
+
+      **Precio** (Price)
+      - Nightly rate for the room
+      - Should be entered as a numeric value
+
+      After completing all fields, click **"Guardar"** (Save) to add the room to inventory.
+    </Accordion>
+  </Step>
+
+  <Step title="Update Room Details">
+    To modify existing room information, click the **"Actualizar"** (Update) button next to the room.
+
+    A dialog opens with pre-populated fields showing current room details. You can update:
+    - Room number/name
+    - Room type
+    - Pricing
+
+    Click **"Actualizar"** to save changes or **"Cerrar"** (Close) to cancel without saving.
+  </Step>
+
+  <Step title="Remove a Room">
+    Click the **"Eliminar"** (Delete) button to remove a room from the inventory.
+
+    <Note>
+      Ensure the room has no active or future reservations before deletion. The system should validate this server-side.
+    </Note>
+  </Step>
+</Steps>
+
+## API Implementation
+
+The room management system implements full CRUD functionality through RESTful endpoints:
+
+<Tabs>
+  <Tab title="Create Room">
+    ```javascript
+    async function guardarDataHabitacion() {
+        const dataHabitacion = {
+            nombre: document.getElementById("roomName").value,
+            tipo: document.getElementById("roomType").value,
+            precio: document.getElementById("roomPrice").value
+        };
+
+        try {
+            const response = await fetch(URL, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataHabitacion)
+            });
+
+            if (!response.ok) throw new Error('Error al guardar habitación');
+            loadDataHabitacion();
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    ```
+
+    **Endpoint**: `POST /habitaciones`
+
+    **Request Body**:
+    ```json
+    {
+      "nombre": "101",
+      "tipo": "Double",
+      "precio": "150.00"
+    }
+    ```
+
+    After successful creation, the room list automatically refreshes to display the new room.
+  </Tab>
+
+  <Tab title="Read Rooms">
+    ```javascript
+    async function loadDataHabitacion() {
+        try {
+            const response = await fetch(URL);
+            data = await response.json();
+
+            let html = '';
+            data.forEach(habitacion => {
+                html += `
+                <tr>
+                    <td>${habitacion.id}</td>
+                    <td>${habitacion.nombre}</td>
+                    <td>${habitacion.tipo}</td>
+                    <td>${habitacion.precio}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" 
+                                onclick="modificarDataHabitacion(${habitacion.id})">
+                            Actualizar
+                        </button>
+                        <button class="btn btn-danger btn-sm" 
+                                onclick="deleteDataHabitacion(${habitacion.id})">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            T_DATA_HABITACION.innerHTML = html;
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    ```
+
+    **Endpoint**: `GET /habitaciones`
+
+    **Response**:
+    ```json
+    [
+      {
+        "id": 1,
+        "nombre": "101",
+        "tipo": "Double",
+        "precio": "150.00"
+      },
+      {
+        "id": 2,
+        "nombre": "202",
+        "tipo": "Suite",
+        "precio": "300.00"
+      }
+    ]
+    ```
+  </Tab>
+
+  <Tab title="Update Room">
+    ```javascript
+    async function actualizarDataHabitacion() {
+        const dialog = document.getElementById("formDataHabitacion");
+        const id = dialog.dataset.habitacionId;
+
+        const dataHabitacion = {
+            nombre: document.getElementById("roomNameU").value,
+            tipo: document.getElementById("roomTypeU").value,
+            precio: document.getElementById("roomPriceU").value
+        };
+
+        try {
+            const response = await fetch(`${URL}/${id}`, {
+                method: "PUT",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataHabitacion)
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar habitación');
+
+            dialog.close();
+            loadDataHabitacion();
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    ```
+
+    **Endpoint**: `PUT /habitaciones/:id`
+
+    **Request Body**:
+    ```json
+    {
+      "nombre": "101A",
+      "tipo": "Deluxe Double",
+      "precio": "175.00"
+    }
+    ```
+
+    The dialog stores the room ID in its dataset attribute for the update operation.
+  </Tab>
+
+  <Tab title="Delete Room">
+    ```javascript
+    async function deleteDataHabitacion(id) {
+        try {
+            const response = await fetch(`${URL}/${id}`, { method: "DELETE" });
+            if (!response.ok) throw new Error('Error al eliminar habitación');
+
+            loadDataHabitacion();
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    ```
+
+    **Endpoint**: `DELETE /habitaciones/:id`
+
+    The room list automatically refreshes after successful deletion.
+  </Tab>
+</Tabs>
+
+## Room Data Structure
+
+Each room record contains the following fields:
+
+<CardGroup cols={2}>
+  <Card title="ID" icon="hashtag">
+    System-generated unique identifier
+  </Card>
+  <Card title="Nombre" icon="door-closed">
+    Room number or identifier (string)
+  </Card>
+  <Card title="Tipo" icon="layer-group">
+    Room category/type (string)
+  </Card>
+  <Card title="Precio" icon="dollar-sign">
+    Nightly rate (numeric string)
+  </Card>
+</CardGroup>
+
+## UI Components
+
+### Room Table
+
+The main interface uses a Bootstrap table to display the room inventory:
+
+```html
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Numero</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Precio</th>
+            <th scope="col">Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="tDataHabitacion">
+        <!-- Dynamically generated from scriptshabitaciones.js -->
+    </tbody>
+</table>
+```
+
+### Creation Modal
+
+A Bootstrap modal provides the interface for adding new rooms:
+
+```html
+<div class="modal fade" id="formData" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Habitación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="roomName" class="form-label">Numero</label>
+                        <input type="text" class="form-control" id="roomName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="roomType" class="form-label">Tipo</label>
+                        <input type="text" class="form-control" id="roomType">
+                    </div>
+                    <div class="mb-3">
+                        <label for="roomPrice" class="form-label">Precio</label>
+                        <input type="text" class="form-control" id="roomPrice">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-primary" onclick="guardarDataHabitacion()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Update Dialog
+
+The update functionality uses a native HTML dialog element:
+
+```javascript
+function modificarDataHabitacion(id) {
+    const dataHabitacion = data.find(habitacion => habitacion.id === id);
+    document.getElementById("roomNameU").value = dataHabitacion.nombre;
+    document.getElementById("roomTypeU").value = dataHabitacion.tipo;
+    document.getElementById("roomPriceU").value = dataHabitacion.precio;
+
+    const dialog = document.getElementById("formDataHabitacion");
+    dialog.dataset.habitacionId = id;
+    dialog.showModal();
+}
+```
+
+The room ID is stored in the dialog's dataset for use during the update operation.
+
+## Room Types
+
+Common room types used in hotel systems:
+
+<CardGroup cols={3}>
+  <Card title="Single" icon="bed">
+    One bed, suitable for one guest
+  </Card>
+  <Card title="Double" icon="bed-pulse">
+    One or two beds for two guests
+  </Card>
+  <Card title="Suite" icon="building">
+    Multiple rooms with enhanced amenities
+  </Card>
+  <Card title="Deluxe" icon="star">
+    Premium rooms with upgraded features
+  </Card>
+  <Card title="Family" icon="people-roof">
+    Larger rooms for families
+  </Card>
+  <Card title="Penthouse" icon="building-columns">
+    Luxury top-floor suites
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Consistent Numbering" icon="list-ol">
+    Use a consistent room numbering scheme (e.g., floor + position: 101, 102, 201, 202)
+  </Card>
+  <Card title="Price Formatting" icon="money-bill">
+    Store prices as decimal values and format them for display with currency symbols
+  </Card>
+  <Card title="Room Status" icon="toggle-on">
+    Consider adding availability status (available, occupied, maintenance) to the data model
+  </Card>
+  <Card title="Image Gallery" icon="images">
+    Enhance the system with room photos to help with reservations
+  </Card>
+</CardGroup>
+
+## Enhancements
+
+### Recommended Features
+
+<Accordion title="Room Availability Calendar">
+  Integrate a calendar view showing room availability across dates, making it easier to identify booking opportunities.
+</Accordion>
+
+<Accordion title="Amenities Tracking">
+  Add fields to track room amenities (Wi-Fi, TV, minibar, etc.) to help guests make informed decisions.
+</Accordion>
+
+<Accordion title="Price Variations">
+  Implement seasonal pricing or dynamic rates based on demand and occupancy levels.
+</Accordion>
+
+<Accordion title="Room Photos">
+  Add image upload functionality to showcase rooms visually in the system and on booking platforms.
+</Accordion>
+
+## Error Handling
+
+All room operations include error handling to manage API failures:
+
+```javascript
+try {
+    const response = await fetch(URL, { /* options */ });
+    if (!response.ok) throw new Error('Error al guardar habitación');
+    // Success handling
+} catch (error) {
+    console.error(error);
+    // Should display user-friendly error message
+}
+```
+
+<Note>
+  Consider implementing user-facing error notifications using toast messages or alert components instead of console logging only.
+</Note>
+
+## Integration Points
+
+Room management integrates with:
+
+- **Client Management**: Clients are linked to rooms through reservations
+- **Reservation System**: Available rooms are selected when creating bookings
+- **Reporting**: Room occupancy and revenue reports depend on this data
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Client Management" icon="users" href="/features/clients">
+    Learn how to manage guest information
+  </Card>
+  <Card title="Reservations" icon="calendar-check" href="/features/reservations">
+    Create and manage room reservations
+  </Card>
+</CardGroup>

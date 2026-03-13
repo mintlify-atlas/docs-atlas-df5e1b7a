@@ -1,0 +1,726 @@
+---
+title: 'Reservations API'
+description: 'Manage hotel room reservations and bookings'
+icon: 'calendar-check'
+---
+
+## Overview
+
+The Reservations API allows you to manage hotel bookings by linking clients with their reservation details. All reservation operations are performed on the `reservaciones` database table.
+
+**Base endpoint**: `/reservaciones`
+
+---
+
+## Get All Reservations
+
+<ParamField path="GET" query="/reservaciones" required>
+  Retrieve a list of all reservations in the system.
+</ParamField>
+
+### Request
+
+```bash
+GET http://localhost:4000/reservaciones
+```
+
+### Response
+
+Returns an array of reservation objects.
+
+<ResponseField name="id" type="integer">
+  Unique identifier for the reservation
+</ResponseField>
+
+<ResponseField name="folio" type="string">
+  Reservation folio or confirmation number
+</ResponseField>
+
+<ResponseField name="nombrecliente" type="string">
+  Name of the client who made the reservation
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl http://localhost:4000/reservaciones
+```
+
+```javascript JavaScript
+fetch('http://localhost:4000/reservaciones')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+response = requests.get('http://localhost:4000/reservaciones')
+reservations = response.json()
+print(reservations)
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+[
+  {
+    "id": 1,
+    "folio": "RES-2024-001",
+    "nombrecliente": "Juan Pérez"
+  },
+  {
+    "id": 2,
+    "folio": "RES-2024-002",
+    "nombrecliente": "María García"
+  },
+  {
+    "id": 3,
+    "folio": "RES-2024-003",
+    "nombrecliente": "Carlos López"
+  }
+]
+```
+
+---
+
+## Create Reservation
+
+<ParamField path="POST" query="/reservaciones" required>
+  Create a new reservation in the system.
+</ParamField>
+
+### Request Body
+
+<ParamField body="folio" type="string" required>
+  Unique reservation folio or confirmation number
+</ParamField>
+
+<ParamField body="nombrecliente" type="string" required>
+  Name of the client making the reservation
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message: "Reservación agregada correctamente"
+</ResponseField>
+
+### Error Response
+
+<ResponseField name="message" type="string">
+  Error message: "Error al guardar reservación" (HTTP 500)
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:4000/reservaciones \
+  -H "Content-Type: application/json" \
+  -d '{
+    "folio": "RES-2024-004",
+    "nombrecliente": "Ana Martínez"
+  }'
+```
+
+```javascript JavaScript
+const newReservation = {
+  folio: 'RES-2024-004',
+  nombrecliente: 'Ana Martínez'
+};
+
+fetch('http://localhost:4000/reservaciones', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(newReservation)
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+new_reservation = {
+    'folio': 'RES-2024-004',
+    'nombrecliente': 'Ana Martínez'
+}
+
+response = requests.post(
+    'http://localhost:4000/reservaciones',
+    json=new_reservation
+)
+
+if response.status_code == 200:
+    print(response.json())
+else:
+    print(f"Error: {response.status_code}")
+    print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+<Tabs>
+  <Tab title="Success">
+    ```json
+    {
+      "message": "Reservación agregada correctamente"
+    }
+    ```
+  </Tab>
+  <Tab title="Error">
+    ```json
+    {
+      "message": "Error al guardar reservación"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Update Reservation
+
+<ParamField path="PUT" query="/reservaciones/:id" required>
+  Update an existing reservation's information.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the reservation to update
+</ParamField>
+
+### Request Body
+
+<ParamField body="folio" type="string" required>
+  Updated reservation folio
+</ParamField>
+
+<ParamField body="nombrecliente" type="string" required>
+  Updated client name
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message: "Reservación actualizada correctamente"
+</ResponseField>
+
+### Error Response
+
+<ResponseField name="message" type="string">
+  Error message: "Reservación no encontrada" (HTTP 404) if the reservation ID doesn't exist
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X PUT http://localhost:4000/reservaciones/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "folio": "RES-2024-001-UPDATED",
+    "nombrecliente": "Juan Pérez García"
+  }'
+```
+
+```javascript JavaScript
+const updatedReservation = {
+  folio: 'RES-2024-001-UPDATED',
+  nombrecliente: 'Juan Pérez García'
+};
+
+fetch('http://localhost:4000/reservaciones/1', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(updatedReservation)
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+updated_reservation = {
+    'folio': 'RES-2024-001-UPDATED',
+    'nombrecliente': 'Juan Pérez García'
+}
+
+response = requests.put(
+    'http://localhost:4000/reservaciones/1',
+    json=updated_reservation
+)
+
+if response.status_code == 200:
+    print(response.json())
+elif response.status_code == 404:
+    print("Reservation not found")
+    print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+<Tabs>
+  <Tab title="Success">
+    ```json
+    {
+      "message": "Reservación actualizada correctamente"
+    }
+    ```
+  </Tab>
+  <Tab title="Not Found">
+    ```json
+    {
+      "message": "Reservación no encontrada"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Delete Reservation
+
+<ParamField path="DELETE" query="/reservaciones/:id" required>
+  Remove a reservation from the system.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the reservation to delete
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message: "Reservación eliminada correctamente"
+</ResponseField>
+
+### Error Response
+
+<ResponseField name="message" type="string">
+  Error message: "Reservación no encontrada" (HTTP 404) if the reservation ID doesn't exist
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE http://localhost:4000/reservaciones/1
+```
+
+```javascript JavaScript
+fetch('http://localhost:4000/reservaciones/1', {
+  method: 'DELETE'
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+response = requests.delete('http://localhost:4000/reservaciones/1')
+
+if response.status_code == 200:
+    print(response.json())
+elif response.status_code == 404:
+    print("Reservation not found")
+    print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+<Tabs>
+  <Tab title="Success">
+    ```json
+    {
+      "message": "Reservación eliminada correctamente"
+    }
+    ```
+  </Tab>
+  <Tab title="Not Found">
+    ```json
+    {
+      "message": "Reservación no encontrada"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Error Handling
+
+<Warning>
+The Reservations API implements partial error handling. While it handles some errors gracefully, database connection issues will still throw unhandled exceptions.
+</Warning>
+
+Error handling by endpoint:
+
+<AccordionGroup>
+  <Accordion title="GET /reservaciones">
+    **Throws errors**: Database connection failures, query errors
+    
+    No custom error handling implemented.
+  </Accordion>
+  
+  <Accordion title="POST /reservaciones">
+    **Handles errors**: Returns 500 status with error message
+    
+    ```json
+    {
+      "message": "Error al guardar reservación"
+    }
+    ```
+    
+    The error is also logged to console for debugging.
+  </Accordion>
+  
+  <Accordion title="PUT /reservaciones/:id">
+    **Handles errors**: Returns 404 when reservation not found
+    
+    ```json
+    {
+      "message": "Reservación no encontrada"
+    }
+    ```
+    
+    **Throws errors**: Database connection failures, query errors
+  </Accordion>
+  
+  <Accordion title="DELETE /reservaciones/:id">
+    **Handles errors**: Returns 404 when reservation not found
+    
+    ```json
+    {
+      "message": "Reservación no encontrada"
+    }
+    ```
+    
+    **Throws errors**: Database connection failures, query errors
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Folio Format
+
+<Info>
+While the API accepts any string as a folio, it's recommended to use a consistent format for reservation tracking.
+</Info>
+
+### Recommended Folio Formats
+
+<Tabs>
+  <Tab title="Standard Format">
+    ```
+    RES-YYYY-NNNN
+    ```
+    
+    Examples:
+    - `RES-2024-0001`
+    - `RES-2024-0002`
+    - `RES-2024-0153`
+    
+    **Benefits**:
+    - Easy to sort chronologically
+    - Clear prefix identification
+    - Sequential numbering
+  </Tab>
+  
+  <Tab title="Date-Based Format">
+    ```
+    RES-YYYYMMDD-HHmm
+    ```
+    
+    Examples:
+    - `RES-20240315-1430`
+    - `RES-20240316-0915`
+    
+    **Benefits**:
+    - Includes timestamp
+    - No collision risk
+    - Sortable by creation time
+  </Tab>
+  
+  <Tab title="UUID Format">
+    ```
+    RES-{UUID}
+    ```
+    
+    Examples:
+    - `RES-a1b2c3d4-e5f6-7890`
+    - `RES-f8e7d6c5-b4a3-2109`
+    
+    **Benefits**:
+    - Guaranteed uniqueness
+    - Suitable for distributed systems
+    - No sequential pattern
+  </Tab>
+</Tabs>
+
+---
+
+## Implementation Details
+
+<Expandable title="View Source Code Reference">
+
+The Reservations API is implemented in the following files:
+
+**Router**: `reservaionFronEnd/router/reservaciones.Router.js`
+```javascript
+router.get('/reservaciones', service.obtenerListReservacionesService);
+router.post('/reservaciones', service.addDataReservaciones);
+router.put('/reservaciones/:id', service.updateDataReservaciones);
+router.delete('/reservaciones/:id', service.deleteDataReservaciones);
+```
+
+**Controller**: `reservaionFronEnd/controllers/reservaciones.controllers.js`
+
+The controller executes SQL queries against the `reservaciones` table:
+
+- `SELECT * FROM reservaciones` - Get all reservations
+- `INSERT INTO reservaciones (folio, nombrecliente) VALUES (?, ?)` - Create reservation
+- `UPDATE reservaciones SET folio=?, nombrecliente=? WHERE id=?` - Update reservation
+- `DELETE FROM reservaciones WHERE id=?` - Delete reservation
+
+The POST endpoint includes error handling:
+```javascript
+if (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al guardar reservación" });
+} else {
+    res.json({ message: "Reservación agregada correctamente" });
+}
+```
+
+The PUT and DELETE endpoints check for affected rows:
+```javascript
+if (results.affectedRows === 0) {
+    res.status(404).json({ message: "Reservación no encontrada" });
+} else {
+    res.json({ message: "Operation successful" });
+}
+```
+
+</Expandable>
+
+---
+
+## Database Schema
+
+The `reservaciones` table structure:
+
+| Column        | Type         | Description                              |
+|---------------|--------------|------------------------------------------|
+| id            | INTEGER      | Primary key, auto-increment              |
+| folio         | VARCHAR      | Unique reservation confirmation number   |
+| nombrecliente | VARCHAR      | Name of the client                       |
+
+<Note>
+The current schema only stores client names. Consider extending it to include:
+- Foreign key to `cliente` table
+- Foreign key to `habitaciones` table
+- Check-in and check-out dates
+- Number of guests
+- Total price
+- Reservation status
+</Note>
+
+---
+
+## Complete Workflow Example
+
+<Steps>
+  <Step title="Check Available Rooms">
+    ```bash
+    curl http://localhost:4000/habitaciones
+    ```
+    Review available rooms and their prices.
+  </Step>
+  
+  <Step title="Verify Client Exists">
+    ```bash
+    curl http://localhost:4000/clientes
+    ```
+    Check if the client is registered, or create a new client.
+  </Step>
+  
+  <Step title="Create Reservation">
+    ```bash
+    curl -X POST http://localhost:4000/reservaciones \
+      -H "Content-Type: application/json" \
+      -d '{
+        "folio": "RES-2024-100",
+        "nombrecliente": "Juan Pérez"
+      }'
+    ```
+    Create the reservation with a unique folio.
+  </Step>
+  
+  <Step title="Confirm Reservation">
+    ```bash
+    curl http://localhost:4000/reservaciones
+    ```
+    Verify the reservation appears in the list.
+  </Step>
+</Steps>
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Folio Management" icon="hashtag">
+    - Use unique, sequential folio numbers
+    - Include year/date in folio format
+    - Never reuse canceled folios
+  </Card>
+  
+  <Card title="Data Validation" icon="shield-check">
+    - Validate folio uniqueness before creation
+    - Verify client exists in system
+    - Check room availability before booking
+  </Card>
+  
+  <Card title="Error Handling" icon="triangle-exclamation">
+    - Always check response status codes
+    - Handle 404 errors for invalid IDs
+    - Log errors for troubleshooting
+  </Card>
+  
+  <Card title="Future Enhancements" icon="lightbulb">
+    - Add date range for reservations
+    - Implement room-client relationship
+    - Add reservation status tracking
+  </Card>
+</CardGroup>
+
+---
+
+## Integration Example
+
+<CodeGroup>
+```javascript React Component
+import { useState, useEffect } from 'react';
+
+function ReservationManager() {
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchReservations();
+  }, []);
+
+  const fetchReservations = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/reservaciones');
+      const data = await response.json();
+      setReservations(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching reservations:', error);
+      setLoading(false);
+    }
+  };
+
+  const createReservation = async (folio, nombrecliente) => {
+    try {
+      const response = await fetch('http://localhost:4000/reservaciones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folio, nombrecliente })
+      });
+      
+      if (response.ok) {
+        fetchReservations(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+    }
+  };
+
+  const deleteReservation = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:4000/reservaciones/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        fetchReservations(); // Refresh list
+      } else if (response.status === 404) {
+        alert('Reservation not found');
+      }
+    } catch (error) {
+      console.error('Error deleting reservation:', error);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <h2>Reservations</h2>
+      <ul>
+        {reservations.map(res => (
+          <li key={res.id}>
+            {res.folio} - {res.nombrecliente}
+            <button onClick={() => deleteReservation(res.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default ReservationManager;
+```
+
+```python Flask Backend
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+API_BASE = 'http://localhost:4000'
+
+@app.route('/api/reservations', methods=['GET'])
+def get_reservations():
+    response = requests.get(f'{API_BASE}/reservaciones')
+    return jsonify(response.json()), response.status_code
+
+@app.route('/api/reservations', methods=['POST'])
+def create_reservation():
+    data = request.json
+    response = requests.post(
+        f'{API_BASE}/reservaciones',
+        json=data
+    )
+    return jsonify(response.json()), response.status_code
+
+@app.route('/api/reservations/<int:id>', methods=['DELETE'])
+def delete_reservation(id):
+    response = requests.delete(f'{API_BASE}/reservaciones/{id}')
+    return jsonify(response.json()), response.status_code
+
+if __name__ == '__main__':
+    app.run(port=5000)
+```
+</CodeGroup>

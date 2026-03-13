@@ -1,0 +1,334 @@
+---
+title: 'Client Management'
+description: 'Manage hotel guests and customer information in the reservation system'
+icon: 'users'
+---
+
+## Overview
+
+The Client Management module provides a comprehensive interface for managing hotel guest information. Staff can create, view, update, and delete client records, maintaining essential contact details for all hotel guests.
+
+<Note>
+  All client operations are performed through a RESTful API running on `http://localhost:4000/clientes`
+</Note>
+
+## User Interface
+
+The client management interface (`index.html`) displays a table-based view of all registered clients with the following information:
+
+- **ID**: Unique identifier for each client
+- **Name (Nombre)**: Client's full name
+- **Email (Correo)**: Contact email address
+- **Phone (Teléfono)**: Contact phone number
+- **Actions (Acciones)**: Quick access to update or delete operations
+
+## Managing Clients
+
+<Steps>
+  <Step title="View All Clients">
+    When you navigate to the Clients page, the system automatically loads all registered clients from the database. The table displays client information in an organized format with action buttons for each record.
+
+    ```javascript
+    // Data is loaded on page initialization
+    async function loadDataCliente() {
+        const response = await fetch(URL);
+        data = await response.json();
+        // Renders client data into the table
+    }
+    ```
+  </Step>
+
+  <Step title="Add a New Client">
+    Click the **"Nuevo Cliente"** (New Client) button at the top of the page to open the creation modal.
+
+    <Accordion title="Client Creation Form">
+      The modal form includes three required fields:
+
+      - **Nombre** (Name): Client's full name
+      - **Correo** (Email): Valid email address
+      - **Teléfono** (Phone): Contact phone number
+
+      After filling out the form, click **"Guardar"** (Save) to create the client record.
+    </Accordion>
+  </Step>
+
+  <Step title="Update Client Information">
+    Each client row has an **"Actualizar"** (Update) button. Clicking it opens a dialog pre-filled with the current client information.
+
+    The update dialog uses the same fields as the creation form, allowing you to modify:
+    - Name
+    - Email
+    - Phone number
+
+    Click **"Actualizar"** (Update) to save changes or **"Cerrar"** (Close) to cancel.
+  </Step>
+
+  <Step title="Delete a Client">
+    Click the **"Eliminar"** (Delete) button next to any client to remove them from the system. This action immediately removes the client record from the database.
+
+    <Note>
+      Client deletion is permanent. Ensure the client has no active reservations before deleting.
+    </Note>
+  </Step>
+</Steps>
+
+## API Operations
+
+The client management system implements full CRUD operations through the following API endpoints:
+
+<Tabs>
+  <Tab title="Create Client">
+    ```javascript
+    async function guardarDataCliente() {
+        const dataCliente = {
+            nombre: document.getElementById("clientName").value,
+            correo: document.getElementById("clientEmail").value,
+            telefono: document.getElementById("clientPhone").value
+        };
+
+        const response = await fetch(URL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataCliente)
+        });
+
+        if (!response.ok) throw new Error('Error al guardar cliente');
+        loadDataCliente();
+    }
+    ```
+
+    **Endpoint**: `POST /clientes`
+
+    **Payload**:
+    ```json
+    {
+      "nombre": "John Doe",
+      "correo": "john.doe@example.com",
+      "telefono": "555-1234"
+    }
+    ```
+  </Tab>
+
+  <Tab title="Read Clients">
+    ```javascript
+    async function loadDataCliente() {
+        const response = await fetch(URL);
+        data = await response.json();
+
+        let html = '';
+        data.forEach(cliente => {
+            html += `
+            <tr>
+                <td>${cliente.id}</td>
+                <td>${cliente.nombre}</td>
+                <td>${cliente.correo}</td>
+                <td>${cliente.telefono}</td>
+                <td>
+                    <button onclick="modificarDataCliente(${cliente.id})">Actualizar</button>
+                    <button onclick="deleteDataCliente(${cliente.id})">Eliminar</button>
+                </td>
+            </tr>`;
+        });
+
+        T_DATA_CLIENTE.innerHTML = html;
+    }
+    ```
+
+    **Endpoint**: `GET /clientes`
+
+    **Response**:
+    ```json
+    [
+      {
+        "id": 1,
+        "nombre": "John Doe",
+        "correo": "john.doe@example.com",
+        "telefono": "555-1234"
+      }
+    ]
+    ```
+  </Tab>
+
+  <Tab title="Update Client">
+    ```javascript
+    async function actualizarDataCliente() {
+        const dialog = document.getElementById("formDataCliente");
+        const id = dialog.dataset.clienteId;
+
+        const dataCliente = {
+            nombre: document.getElementById("clientNameU").value,
+            correo: document.getElementById("clientEmailU").value,
+            telefono: document.getElementById("clientPhoneU").value
+        };
+
+        const response = await fetch(`${URL}/${id}`, {
+            method: "PUT",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataCliente)
+        });
+
+        if (!response.ok) throw new Error('Error al actualizar cliente');
+        
+        dialog.close();
+        loadDataCliente();
+    }
+    ```
+
+    **Endpoint**: `PUT /clientes/:id`
+
+    **Payload**:
+    ```json
+    {
+      "nombre": "Jane Doe",
+      "correo": "jane.doe@example.com",
+      "telefono": "555-5678"
+    }
+    ```
+  </Tab>
+
+  <Tab title="Delete Client">
+    ```javascript
+    async function deleteDataCliente(id) {
+        const response = await fetch(`${URL}/${id}`, { method: "DELETE" });
+        if (!response.ok) throw new Error('Error al eliminar cliente');
+        
+        loadDataCliente();
+    }
+    ```
+
+    **Endpoint**: `DELETE /clientes/:id`
+  </Tab>
+</Tabs>
+
+## Data Structure
+
+Each client record contains the following fields:
+
+<CardGroup cols={2}>
+  <Card title="ID" icon="hashtag">
+    Auto-generated unique identifier for each client
+  </Card>
+  <Card title="Nombre" icon="user">
+    Client's full name (string, required)
+  </Card>
+  <Card title="Correo" icon="envelope">
+    Email address for communication (string, required)
+  </Card>
+  <Card title="Teléfono" icon="phone">
+    Contact phone number (string, required)
+  </Card>
+</CardGroup>
+
+## UI Components
+
+### Client Table
+
+The main interface displays clients in a Bootstrap-styled table (`table` class) with dynamic content loading:
+
+```html
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Correo</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="tDataCliente">
+        <!-- Dynamically populated from scripts.js -->
+    </tbody>
+</table>
+```
+
+### Creation Modal
+
+A Bootstrap modal (`#formData`) provides a centered dialog for adding new clients:
+
+```html
+<div class="modal fade" id="formData" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="clientName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="clientName">
+                    </div>
+                    <!-- Email and phone fields -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-primary" onclick="guardarDataCliente()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Update Dialog
+
+A native HTML `<dialog>` element (`#formDataCliente`) handles client updates:
+
+```javascript
+function modificarDataCliente(id) {
+    const dataCliente = data.find(cliente => cliente.id === id);
+    document.getElementById("clientNameU").value = dataCliente.nombre;
+    document.getElementById("clientEmailU").value = dataCliente.correo;
+    document.getElementById("clientPhoneU").value = dataCliente.telefono;
+
+    const dialog = document.getElementById("formDataCliente");
+    dialog.dataset.clienteId = id;
+    dialog.showModal();
+}
+```
+
+## Error Handling
+
+All API operations include comprehensive error handling:
+
+```javascript
+try {
+    const response = await fetch(URL, { /* options */ });
+    if (!response.ok) throw new Error('Error message');
+    // Success operations
+} catch (error) {
+    console.error(error);
+}
+```
+
+Errors are logged to the browser console for debugging purposes. In production, these should be displayed to users through appropriate UI feedback mechanisms.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Data Validation" icon="shield-check">
+    Validate email format and required fields before submission to ensure data quality
+  </Card>
+  <Card title="Confirmation Dialogs" icon="triangle-exclamation">
+    Consider adding confirmation prompts before deleting clients to prevent accidental data loss
+  </Card>
+  <Card title="Search & Filter" icon="magnifying-glass">
+    For large client databases, implement search and filter functionality to improve usability
+  </Card>
+  <Card title="Error Messages" icon="circle-exclamation">
+    Display user-friendly error messages in the UI instead of just console logging
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Room Management" icon="bed" href="/features/rooms">
+    Learn how to manage hotel room inventory
+  </Card>
+  <Card title="Reservations" icon="calendar-check" href="/features/reservations">
+    Create reservations linking clients to rooms
+  </Card>
+</CardGroup>

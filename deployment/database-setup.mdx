@@ -1,0 +1,315 @@
+---
+title: Database Setup
+description: Configure and initialize the MySQL database for the Hotel Reservation System
+---
+
+The Hotel Reservation System uses MySQL as its database backend. This guide walks you through setting up the database, creating the schema, and configuring the connection.
+
+## Prerequisites
+
+Before setting up the database, ensure you have:
+
+- MySQL Server 5.7 or higher installed
+- MySQL command-line client or MySQL Workbench
+- Database administrator credentials
+
+<Warning>
+  Make sure MySQL is running on your system before proceeding with the setup. You can verify this with `mysql --version` and check the service status.
+</Warning>
+
+## Database Installation
+
+<Steps>
+  <Step title="Install MySQL Server">
+    Install MySQL based on your operating system:
+
+    <CodeGroup>
+      ```bash Ubuntu/Debian
+      sudo apt update
+      sudo apt install mysql-server
+      sudo systemctl start mysql
+      sudo systemctl enable mysql
+      ```
+
+      ```bash macOS (Homebrew)
+      brew install mysql
+      brew services start mysql
+      ```
+
+      ```bash Windows
+      # Download MySQL Installer from:
+      # https://dev.mysql.com/downloads/installer/
+      # Run the installer and follow the setup wizard
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Secure MySQL Installation">
+    Run the MySQL security script to set root password and remove test databases:
+
+    ```bash
+    sudo mysql_secure_installation
+    ```
+
+    Follow the prompts to:
+    - Set a root password
+    - Remove anonymous users
+    - Disallow root login remotely
+    - Remove test database
+    - Reload privilege tables
+  </Step>
+
+  <Step title="Access MySQL Console">
+    Log into MySQL as root:
+
+    ```bash
+    mysql -u root -p
+    ```
+
+    Enter your root password when prompted.
+  </Step>
+</Steps>
+
+## Create Database and Schema
+
+<Steps>
+  <Step title="Create the Database">
+    Execute the following SQL command to create the reservation database:
+
+    ```sql
+    CREATE DATABASE BDReservacion CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    ```
+
+    Verify the database was created:
+
+    ```sql
+    SHOW DATABASES;
+    ```
+  </Step>
+
+  <Step title="Select the Database">
+    Switch to the newly created database:
+
+    ```sql
+    USE BDReservacion;
+    ```
+  </Step>
+
+  <Step title="Create Cliente Table">
+    Create the table for storing client information:
+
+    ```sql
+    CREATE TABLE `cliente` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `nombre` VARCHAR(255) NOT NULL,
+      `correo` VARCHAR(255) NOT NULL UNIQUE,
+      `telefono` VARCHAR(20) NOT NULL,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_correo (correo),
+      INDEX idx_nombre (nombre)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ```
+
+    **Schema Details:**
+    - `id`: Auto-incrementing primary key
+    - `nombre`: Client's full name
+    - `correo`: Email address (unique constraint)
+    - `telefono`: Phone number
+    - Timestamps for record tracking
+  </Step>
+
+  <Step title="Create Habitaciones Table">
+    Create the table for room management:
+
+    ```sql
+    CREATE TABLE `habitaciones` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `nombre` VARCHAR(255) NOT NULL,
+      `tipo` VARCHAR(100) NOT NULL,
+      `precio` DECIMAL(10, 2) NOT NULL,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_tipo (tipo),
+      INDEX idx_precio (precio)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ```
+
+    **Schema Details:**
+    - `id`: Auto-incrementing primary key
+    - `nombre`: Room name/number
+    - `tipo`: Room type (e.g., Single, Double, Suite)
+    - `precio`: Price per night (decimal for currency)
+  </Step>
+
+  <Step title="Create Reservaciones Table">
+    Create the table for reservation records:
+
+    ```sql
+    CREATE TABLE `reservaciones` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `folio` VARCHAR(50) NOT NULL UNIQUE,
+      `nombrecliente` VARCHAR(255) NOT NULL,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_folio (folio),
+      INDEX idx_nombrecliente (nombrecliente)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ```
+
+    **Schema Details:**
+    - `id`: Auto-incrementing primary key
+    - `folio`: Unique reservation identifier
+    - `nombrecliente`: Client name associated with reservation
+  </Step>
+
+  <Step title="Verify Tables">
+    Confirm all tables were created successfully:
+
+    ```sql
+    SHOW TABLES;
+    ```
+
+    Expected output:
+    ```
+    +-------------------------+
+    | Tables_in_BDReservacion |
+    +-------------------------+
+    | cliente                 |
+    | habitaciones            |
+    | reservaciones           |
+    +-------------------------+
+    ```
+  </Step>
+</Steps>
+
+## Create Database User
+
+For security best practices, create a dedicated user for the application instead of using root:
+
+<Steps>
+  <Step title="Create Application User">
+    ```sql
+    CREATE USER 'reservacion_user'@'localhost' IDENTIFIED BY 'your_secure_password';
+    ```
+
+    <Note>
+      Replace `your_secure_password` with a strong password. Store this securely as you'll need it for the application configuration.
+    </Note>
+  </Step>
+
+  <Step title="Grant Permissions">
+    Grant the necessary privileges to the new user:
+
+    ```sql
+    GRANT SELECT, INSERT, UPDATE, DELETE ON BDReservacion.* TO 'reservacion_user'@'localhost';
+    FLUSH PRIVILEGES;
+    ```
+  </Step>
+
+  <Step title="Test User Connection">
+    Exit MySQL and test the new user credentials:
+
+    ```bash
+    mysql -u reservacion_user -p BDReservacion
+    ```
+
+    If successful, you should be connected to the BDReservacion database.
+  </Step>
+</Steps>
+
+## Insert Sample Data (Optional)
+
+To test your setup, insert some sample data:
+
+<Accordion title="Sample Data SQL">
+  ```sql
+  -- Insert sample clients
+  INSERT INTO cliente (nombre, correo, telefono) VALUES
+    ('Juan Pérez', 'juan.perez@example.com', '555-0101'),
+    ('María García', 'maria.garcia@example.com', '555-0102'),
+    ('Carlos López', 'carlos.lopez@example.com', '555-0103');
+
+  -- Insert sample rooms
+  INSERT INTO habitaciones (nombre, tipo, precio) VALUES
+    ('Habitación 101', 'Individual', 500.00),
+    ('Habitación 201', 'Doble', 800.00),
+    ('Suite 301', 'Suite Ejecutiva', 1500.00),
+    ('Habitación 102', 'Individual', 500.00),
+    ('Habitación 202', 'Doble', 850.00);
+
+  -- Insert sample reservations
+  INSERT INTO reservaciones (folio, nombrecliente) VALUES
+    ('RES-001', 'Juan Pérez'),
+    ('RES-002', 'María García');
+  ```
+</Accordion>
+
+## Verify Database Setup
+
+Run these queries to confirm your setup:
+
+```sql
+-- Check cliente table
+SELECT * FROM cliente;
+
+-- Check habitaciones table
+SELECT * FROM habitaciones;
+
+-- Check reservaciones table
+SELECT * FROM reservaciones;
+
+-- View table structures
+DESCRIBE cliente;
+DESCRIBE habitaciones;
+DESCRIBE reservaciones;
+```
+
+## Database Connection Settings
+
+The application connects to MySQL using the following default settings (as configured in `/reservaionFronEnd/model/database.js:5-10`):
+
+```javascript
+{
+  host: 'localhost',
+  user: 'root',
+  password: '1234',
+  database: 'BDReservacion'
+}
+```
+
+<Warning>
+  The default configuration uses root credentials. For production environments, always use a dedicated database user with limited privileges as described in the "Create Database User" section above.
+</Warning>
+
+## Troubleshooting
+
+<Accordion title="Connection refused errors">
+  - Verify MySQL service is running: `sudo systemctl status mysql`
+  - Check MySQL is listening on port 3306: `netstat -an | grep 3306`
+  - Ensure firewall allows MySQL connections
+</Accordion>
+
+<Accordion title="Access denied errors">
+  - Verify username and password are correct
+  - Check user has proper permissions: `SHOW GRANTS FOR 'username'@'localhost';`
+  - Ensure you're connecting from the correct host
+</Accordion>
+
+<Accordion title="Table doesn't exist errors">
+  - Verify you're connected to the correct database: `SELECT DATABASE();`
+  - List all tables: `SHOW TABLES;`
+  - Check table names are case-sensitive on Linux systems
+</Accordion>
+
+## Next Steps
+
+After setting up the database:
+
+1. [Configure the application](/deployment/configuration) with your database credentials
+2. [Deploy the server](/deployment/deployment) and test the connection
+3. Verify API endpoints can interact with the database
+
+<Note>
+  Remember to backup your database regularly in production environments using `mysqldump` or automated backup solutions.
+</Note>

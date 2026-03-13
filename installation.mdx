@@ -1,0 +1,430 @@
+---
+title: Installation
+description: Complete installation guide for the Hotel Reservation System
+---
+
+This guide covers everything you need to install and configure the Hotel Reservation System, including prerequisites, dependencies, and database setup.
+
+## Prerequisites
+
+Before installing the Hotel Reservation System, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+
+<Card title="Node.js" icon="node-js">
+  **Version:** 14.x or higher
+  
+  [Download Node.js](https://nodejs.org/)
+</Card>
+
+<Card title="MySQL" icon="database">
+  **Version:** 5.7 or higher
+  
+  [Download MySQL](https://dev.mysql.com/downloads/)
+</Card>
+
+</CardGroup>
+
+<Tip>
+You can verify your installations by running:
+```bash
+node --version
+mysql --version
+```
+</Tip>
+
+## Installation Steps
+
+<Steps>
+
+<Step title="Clone or Download the Repository">
+
+Get the source code for the Hotel Reservation System:
+
+```bash
+git clone <repository-url>
+cd reservaionFronEnd
+```
+
+Or download and extract the ZIP file to your desired location.
+
+</Step>
+
+<Step title="Install Node.js Dependencies">
+
+Install all required npm packages:
+
+```bash
+npm install
+```
+
+This will install the following dependencies as defined in `package.json`:
+
+| Package | Version | Purpose |
+|---------|---------|----------|
+| express | ^4.21.1 | Web application framework |
+| mysql2 | ^3.11.4 | MySQL database driver with Promise support |
+| body-parser | ^1.20.3 | Parse incoming request bodies (JSON, URL-encoded) |
+| cors | ^2.8.5 | Enable Cross-Origin Resource Sharing |
+
+<Note>
+The installation typically takes 1-2 minutes depending on your internet connection.
+</Note>
+
+</Step>
+
+<Step title="Set Up MySQL Database">
+
+### Create the Database
+
+Log into MySQL and create the database:
+
+```bash
+mysql -u root -p
+```
+
+Then execute:
+
+```sql
+CREATE DATABASE BDReservacion;
+USE BDReservacion;
+```
+
+### Create Required Tables
+
+The system requires three main tables:
+
+<Accordion title="Cliente Table (Client/Guest Information)">
+
+```sql
+CREATE TABLE cliente (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  correo VARCHAR(255) NOT NULL,
+  telefono VARCHAR(20)
+);
+```
+
+**Fields:**
+- `id` - Auto-incrementing primary key
+- `nombre` - Client's full name
+- `correo` - Email address
+- `telefono` - Phone number
+
+</Accordion>
+
+<Accordion title="Habitaciones Table (Room Information)">
+
+```sql
+CREATE TABLE habitaciones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  tipo VARCHAR(100) NOT NULL,
+  precio DECIMAL(10, 2) NOT NULL
+);
+```
+
+**Fields:**
+- `id` - Auto-incrementing primary key
+- `nombre` - Room name/number
+- `tipo` - Room type (single, double, suite, etc.)
+- `precio` - Price per night
+
+</Accordion>
+
+<Accordion title="Reservaciones Table (Reservation Records)">
+
+```sql
+CREATE TABLE reservaciones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  folio VARCHAR(50) NOT NULL,
+  nombrecliente VARCHAR(255) NOT NULL
+);
+```
+
+**Fields:**
+- `id` - Auto-incrementing primary key
+- `folio` - Reservation folio/confirmation number
+- `nombrecliente` - Client name associated with reservation
+
+</Accordion>
+
+### Insert Sample Data (Optional)
+
+Populate your database with sample data for testing:
+
+```sql
+-- Sample clients
+INSERT INTO cliente (nombre, correo, telefono) VALUES 
+('Maria Garcia', 'maria.garcia@example.com', '555-0101'),
+('Carlos Rodriguez', 'carlos.r@example.com', '555-0102'),
+('Ana Martinez', 'ana.martinez@example.com', '555-0103');
+
+-- Sample rooms
+INSERT INTO habitaciones (nombre, tipo, precio) VALUES 
+('Room 101', 'Single', 75.00),
+('Room 102', 'Double', 120.00),
+('Room 201', 'Suite', 250.00),
+('Room 202', 'Deluxe', 180.00);
+
+-- Sample reservations
+INSERT INTO reservaciones (folio, nombrecliente) VALUES 
+('FOL-001', 'Maria Garcia'),
+('FOL-002', 'Carlos Rodriguez');
+```
+
+</Step>
+
+<Step title="Configure Database Connection">
+
+The database connection settings are located in `model/database.js`:
+
+```javascript model/database.js
+const mysql = require('mysql2');
+
+const conexion = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '1234',
+    database: 'BDReservacion'
+});
+
+conexion.connect((err) =>{
+    if (err) throw err;
+    console.log("Conexion exitosa a la base de datos")
+})
+
+module.exports = conexion;
+```
+
+### Update Configuration
+
+Modify the connection parameters to match your MySQL setup:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `host` | `localhost` | MySQL server hostname |
+| `user` | `root` | MySQL username |
+| `password` | `1234` | MySQL password |
+| `database` | `BDReservacion` | Database name |
+
+<Warning>
+**Security Best Practice**
+
+For production environments:
+- Use environment variables for sensitive credentials
+- Create a dedicated MySQL user with limited privileges
+- Never commit credentials to version control
+</Warning>
+
+</Step>
+
+<Step title="Verify Installation">
+
+Start the server to verify everything is installed correctly:
+
+```bash
+node server.js
+```
+
+**Expected Output:**
+
+```
+Servidor iniciado en el puerto 4000
+Conexion exitosa a la base de datos
+```
+
+If you see both messages, your installation is successful!
+
+### Test the API
+
+Make a test request to verify the API is responding:
+
+```bash
+curl http://localhost:4000/clientes
+```
+
+You should receive a JSON response with your client data (empty array `[]` if no clients exist).
+
+</Step>
+
+</Steps>
+
+## Server Configuration
+
+The main server configuration is in `server.js`:
+
+```javascript server.js
+const express = require('express');
+const bodyParser = require('body-parser');
+const clientesRouter = require('./router/clientes.Router');
+const habitacionRouter = require('./router/habitaciones.Router');
+const reservacionRouter = require('./router/reservaciones.Router');
+const cors = require("cors");
+
+const app = express();
+const PORT = 4000;
+
+// Middleware configuration
+app.use(cors());
+app.use(bodyParser.json());
+app.use(clientesRouter)
+app.use(habitacionRouter)
+app.use(reservacionRouter)
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`Servidor iniciado en el puerto ${PORT}`);
+})
+```
+
+### Key Configuration Points
+
+<AccordionGroup>
+
+<Accordion title="Port Configuration">
+
+The server runs on port **4000** by default. To change it:
+
+```javascript
+const PORT = 4000; // Change to your preferred port
+```
+
+Make sure the chosen port is:
+- Not already in use by another application
+- Not blocked by your firewall
+- Above 1024 (if running without root privileges)
+
+</Accordion>
+
+<Accordion title="CORS Configuration">
+
+CORS (Cross-Origin Resource Sharing) is enabled globally:
+
+```javascript
+app.use(cors());
+```
+
+For production, consider restricting origins:
+
+```javascript
+const corsOptions = {
+  origin: 'https://your-frontend-domain.com',
+  optionsSuccessStatus: 200
+}
+app.use(cors(corsOptions));
+```
+
+</Accordion>
+
+<Accordion title="Body Parser Configuration">
+
+JSON parsing is configured with default settings:
+
+```javascript
+app.use(bodyParser.json());
+```
+
+To handle larger payloads:
+
+```javascript
+app.use(bodyParser.json({ limit: '10mb' }));
+```
+
+</Accordion>
+
+</AccordionGroup>
+
+## Project Structure
+
+Understanding the project structure:
+
+```
+reservaionFronEnd/
+├── server.js              # Main application entry point
+├── package.json           # Dependencies and project metadata
+├── model/
+│   └── database.js        # MySQL connection configuration
+├── controllers/
+│   ├── clientes.controllers.js      # Client business logic
+│   ├── habitaciones.controllers.js  # Room business logic
+│   └── reservaciones.controllers.js # Reservation business logic
+└── router/
+    ├── clientes.Router.js      # Client API routes
+    ├── habitaciones.Router.js  # Room API routes
+    └── reservaciones.Router.js # Reservation API routes
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+
+<Accordion title="MySQL Connection Error">
+
+**Symptom:** `Error: connect ECONNREFUSED`
+
+**Solutions:**
+- Verify MySQL service is running: `systemctl status mysql` (Linux) or check Services (Windows)
+- Check MySQL is listening on port 3306: `netstat -an | grep 3306`
+- Verify credentials in `model/database.js`
+- Ensure the database `BDReservacion` exists
+
+</Accordion>
+
+<Accordion title="Port Already in Use">
+
+**Symptom:** `Error: listen EADDRINUSE :::4000`
+
+**Solutions:**
+- Check what's using port 4000: `lsof -i :4000` (Mac/Linux) or `netstat -ano | findstr :4000` (Windows)
+- Kill the process or change the port in `server.js`
+
+</Accordion>
+
+<Accordion title="Module Not Found Error">
+
+**Symptom:** `Error: Cannot find module 'express'`
+
+**Solution:**
+- Ensure you're in the correct directory: `cd reservaionFronEnd`
+- Reinstall dependencies: `npm install`
+- Check that `node_modules` folder exists
+
+</Accordion>
+
+<Accordion title="Database Tables Not Found">
+
+**Symptom:** `Error: Table 'BDReservacion.cliente' doesn't exist`
+
+**Solution:**
+- Log into MySQL and verify the database exists: `SHOW DATABASES;`
+- Check if tables exist: `USE BDReservacion; SHOW TABLES;`
+- Re-run the table creation SQL statements from Step 3
+
+</Accordion>
+
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have the system installed:
+
+<CardGroup cols={2}>
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Make your first API call and start building
+</Card>
+
+<Card title="API Reference" icon="book" href="/api/overview">
+  Explore all available endpoints and examples
+</Card>
+
+<Card title="Configuration" icon="sliders" href="/deployment/configuration">
+  Learn about advanced configuration options
+</Card>
+
+<Card title="Deployment" icon="cloud" href="/deployment">
+  Deploy your application to production
+</Card>
+
+</CardGroup>

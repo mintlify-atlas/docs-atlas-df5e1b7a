@@ -1,0 +1,386 @@
+---
+title: 'Clients API'
+description: 'Manage hotel clients and their contact information'
+icon: 'users'
+---
+
+## Overview
+
+The Clients API allows you to manage hotel guest information including names, email addresses, and phone numbers. All client operations are performed on the `cliente` database table.
+
+**Base endpoint**: `/clientes`
+
+---
+
+## Get All Clients
+
+<ParamField path="GET" query="/clientes" required>
+  Retrieve a list of all registered clients in the system.
+</ParamField>
+
+### Request
+
+```bash
+GET http://localhost:4000/clientes
+```
+
+### Response
+
+Returns an array of client objects.
+
+<ResponseField name="id" type="integer">
+  Unique identifier for the client
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Client's full name
+</ResponseField>
+
+<ResponseField name="correo" type="string">
+  Client's email address
+</ResponseField>
+
+<ResponseField name="telefono" type="string">
+  Client's phone number
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl http://localhost:4000/clientes
+```
+
+```javascript JavaScript
+fetch('http://localhost:4000/clientes')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+response = requests.get('http://localhost:4000/clientes')
+clients = response.json()
+print(clients)
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Juan Pérez",
+    "correo": "juan.perez@example.com",
+    "telefono": "555-0101"
+  },
+  {
+    "id": 2,
+    "nombre": "María García",
+    "correo": "maria.garcia@example.com",
+    "telefono": "555-0102"
+  },
+  {
+    "id": 3,
+    "nombre": "Carlos López",
+    "correo": "carlos.lopez@example.com",
+    "telefono": "555-0103"
+  }
+]
+```
+
+---
+
+## Create Client
+
+<ParamField path="POST" query="/clientes" required>
+  Add a new client to the system.
+</ParamField>
+
+### Request Body
+
+<ParamField body="nombre" type="string" required>
+  Client's full name
+</ParamField>
+
+<ParamField body="correo" type="string" required>
+  Client's email address
+</ParamField>
+
+<ParamField body="telefono" type="string" required>
+  Client's phone number
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: "Cliente agregado"
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:4000/clientes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Ana Martínez",
+    "correo": "ana.martinez@example.com",
+    "telefono": "555-0104"
+  }'
+```
+
+```javascript JavaScript
+const newClient = {
+  nombre: 'Ana Martínez',
+  correo: 'ana.martinez@example.com',
+  telefono: '555-0104'
+};
+
+fetch('http://localhost:4000/clientes', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(newClient)
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+new_client = {
+    'nombre': 'Ana Martínez',
+    'correo': 'ana.martinez@example.com',
+    'telefono': '555-0104'
+}
+
+response = requests.post(
+    'http://localhost:4000/clientes',
+    json=new_client
+)
+print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+{
+  "message": "Cliente agregado"
+}
+```
+
+---
+
+## Update Client
+
+<ParamField path="PUT" query="/clientes/:id" required>
+  Update an existing client's information.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the client to update
+</ParamField>
+
+### Request Body
+
+<ParamField body="nombre" type="string" required>
+  Updated client name
+</ParamField>
+
+<ParamField body="correo" type="string" required>
+  Updated client email
+</ParamField>
+
+<ParamField body="telefono" type="string" required>
+  Updated client phone number
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: "Cliente actualizado"
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X PUT http://localhost:4000/clientes/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Juan Pérez García",
+    "correo": "juan.perez.garcia@example.com",
+    "telefono": "555-0201"
+  }'
+```
+
+```javascript JavaScript
+const updatedClient = {
+  nombre: 'Juan Pérez García',
+  correo: 'juan.perez.garcia@example.com',
+  telefono: '555-0201'
+};
+
+fetch('http://localhost:4000/clientes/1', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(updatedClient)
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+updated_client = {
+    'nombre': 'Juan Pérez García',
+    'correo': 'juan.perez.garcia@example.com',
+    'telefono': '555-0201'
+}
+
+response = requests.put(
+    'http://localhost:4000/clientes/1',
+    json=updated_client
+)
+print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+{
+  "message": "Cliente actualizado"
+}
+```
+
+---
+
+## Delete Client
+
+<ParamField path="DELETE" query="/clientes/:id" required>
+  Remove a client from the system.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the client to delete
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: "Cliente eliminado"
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE http://localhost:4000/clientes/1
+```
+
+```javascript JavaScript
+fetch('http://localhost:4000/clientes/1', {
+  method: 'DELETE'
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+```
+
+```python Python
+import requests
+
+response = requests.delete('http://localhost:4000/clientes/1')
+print(response.json())
+```
+</CodeGroup>
+
+### Response Example
+
+```json
+{
+  "message": "Cliente eliminado"
+}
+```
+
+---
+
+## Error Handling
+
+<Warning>
+All endpoints will throw database errors if operations fail. The API currently does not implement structured error handling.
+</Warning>
+
+Common error scenarios:
+- Database connection failures
+- Invalid SQL queries
+- Constraint violations (e.g., deleting a client referenced in reservations)
+
+### Example Error
+
+If a database error occurs, you'll receive a 500 status code with the error details:
+
+```json
+{
+  "code": "ER_NO_SUCH_TABLE",
+  "errno": 1146,
+  "sqlMessage": "Table 'database.cliente' doesn't exist",
+  "sqlState": "42S02"
+}
+```
+
+---
+
+## Implementation Details
+
+<Expandable title="View Source Code Reference">
+
+The Clients API is implemented in the following files:
+
+**Router**: `reservaionFronEnd/router/clientes.Router.js`
+```javascript
+router.get('/clientes', service.obtenerListClientesService);
+router.post('/clientes', service.addDataCliente);
+router.put('/clientes/:id', service.updateDataCliente);
+router.delete('/clientes/:id', service.deleteDataCliente);
+```
+
+**Controller**: `reservaionFronEnd/controllers/clientes.controllers.js`
+
+The controller executes direct SQL queries against the `cliente` table:
+- `SELECT * FROM cliente` - Get all clients
+- `INSERT INTO cliente (nombre, correo, telefono) VALUES (?, ?, ?)` - Create client
+- `UPDATE cliente SET nombre=?, correo=?, telefono=? WHERE id=?` - Update client
+- `DELETE FROM cliente WHERE id=?` - Delete client
+
+</Expandable>
+
+---
+
+## Database Schema
+
+The `cliente` table structure:
+
+| Column   | Type         | Description                    |
+|----------|--------------|--------------------------------|
+| id       | INTEGER      | Primary key, auto-increment    |
+| nombre   | VARCHAR      | Client's full name             |
+| correo   | VARCHAR      | Client's email address         |
+| telefono | VARCHAR      | Client's phone number          |
